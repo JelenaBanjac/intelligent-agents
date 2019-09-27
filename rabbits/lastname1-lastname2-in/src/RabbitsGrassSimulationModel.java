@@ -1,5 +1,11 @@
+import java.awt.Color;
+import java.util.ArrayList;
+
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimModelImpl;
+import uchicago.src.sim.gui.ColorMap;
+import uchicago.src.sim.gui.DisplaySurface;
+import uchicago.src.sim.gui.Value2DDisplay;
 import uchicago.src.sim.engine.SimInit;
 
 /**
@@ -14,13 +20,20 @@ import uchicago.src.sim.engine.SimInit;
 
 public class RabbitsGrassSimulationModel extends SimModelImpl {		
 	// Default values
-	private static final int NUM_INIT_RABBITS = 100;
+	private static final int NUM_RABBITS_INIT = 100;
 	private static final int GRID_SIZE = 20;
+	private static final int TOTAL_GRASS = 1000;
+	private static final int RABBIT_ENERGY_INIT = 50;
 		
-	private int numInitRabbits = NUM_INIT_RABBITS;
+	private int numRabbits = NUM_RABBITS_INIT;
 	private int gridSize = GRID_SIZE;
+	private int grass = TOTAL_GRASS;
+	private int rabbitEnergyInit = RABBIT_ENERGY_INIT;
 	
 	private Schedule schedule;
+	private RabbitsGrassSimulationSpace rgsSpace;
+	private ArrayList rabbitsList;
+	private DisplaySurface displaySurf;
 	
 	public static void main(String[] args) {
 		
@@ -38,6 +51,16 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	
 	public void setup() {
 		System.out.println("Running setup");
+		rgsSpace = null;
+		rabbitsList = new ArrayList();
+		
+		if (displaySurf != null) {
+			displaySurf.dispose();
+		}
+		displaySurf = null;
+		displaySurf = new DisplaySurface(this, "Rabbit Grass Simulation Model, Window 1");
+		
+		registerDisplaySurface("Rabbit Grass Simulation Model, Window 1", displaySurf);
 	}
 
 	public void begin() {
@@ -45,10 +68,18 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		buildSchedule();
 		buildDisplay();
 		
+		displaySurf.display();
+		
 	}
 	
 	public void buildModel() {
 		System.out.println("Running BuildModel");
+		rgsSpace = new RabbitsGrassSimulationSpace(gridSize);
+		rgsSpace.spreadGrass(grass);
+		
+		for (int i = 0; i < numRabbits; i++) {
+			addNewRabbit();
+		}
 	}
 	
 	public void buildSchedule() {
@@ -57,6 +88,25 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	
 	public void buildDisplay() {
 		System.out.println("Running BuildDisplay");
+		
+		ColorMap map = new ColorMap();
+
+	    for(int i = 1; i<16; i++){
+	    	map.mapColor(i, new Color((int)(i * 8 + 127), 0, 0));
+	    }
+	    map.mapColor(0, Color.white);
+
+	    Value2DDisplay displayMoney =
+	        new Value2DDisplay(rgsSpace.getCurrentGrassSpace(), map);
+
+	    displaySurf.addDisplayable(displayMoney, "Money");
+
+	}
+	
+	private void addNewRabbit() {
+		RabbitsGrassSimulationAgent r = new RabbitsGrassSimulationAgent(rabbitEnergyInit);
+		rabbitsList.add(r);
+		rgsSpace.addRabbit(r);
 	}
 
 	public String[] getInitParam() {
@@ -75,12 +125,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		return schedule;
 	}
 	
-    public int getNumInitRabbits(){
-	    return numInitRabbits;
+    public int getNumRabbits(){
+	    return numRabbits;
 	}
 
-	public void setNumInitRabbits(int nr){
-	    numInitRabbits = nr;
+	public void setNumRabbits(int nr){
+		numRabbits = nr;
 	}
 	
     public int getGridSize(){
@@ -91,6 +141,21 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    gridSize = gs;
 	}
 
-	
+
+	public int getGrass() {
+		return grass;
+	}
+
+	public void setGrass(int i) {
+		grass = i;
+	}
+
+	public int getRabbitEnergyInit() {
+		return rabbitEnergyInit;
+	}
+
+	public void setRabbitEnergyInit(int i) {
+		rabbitEnergyInit = i;
+	}
 		
 }

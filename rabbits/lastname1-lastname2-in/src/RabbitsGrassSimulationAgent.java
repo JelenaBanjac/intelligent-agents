@@ -12,9 +12,28 @@ import uchicago.src.sim.gui.SimGraphics;
 
 public class RabbitsGrassSimulationAgent implements Drawable {
 
+	private int x;
+	private int y;
+	private int grass;
+	private int energy;
+	// private int stepsToLive;
+	
+	public RabbitsGrassSimulationAgent(int energyInit) {
+		x = -1;
+		y = -1;
+		energy = energyInit;
+		// stepsToLive = (int)((Math.random() * (maxLifespan - minLifespan)) + minLifespan);
+		
+	}
+	
 	public void draw(SimGraphics arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public void setXY(int newX, int newY) {
+		x = newX;
+		y = newY;
 	}
 
 	public int getX() {
