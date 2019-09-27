@@ -63,3 +63,25 @@ Deliverable (Due on Tuesday 01.10.2019 at 23:55):
 - Your source code, compiled code, runnable jar, and report. All in one (!) zip file
 - The report is a short description of your code and results, must be in PDF, maximum of three pages
 - Follow the instructions given above.
+
+# TODOs
+
+- [ ] make square grid; initial size 20x20; torus
+- [x] collisions prevention; rabbits cannot stay on the same cell
+- [ ] legal agent moves 1 step in NSEW direction, with every move they losse part of energy (CHECK: what number exactly?) unless they bump into the grass cell, in that case they increase the energy (CHECK: what number exactly? different grass cell can give different amount of energy)
+- [ ] eat condition; rabbit eats the grass when it occupies the same cell
+- [ ] no communication between agents
+- [ ] agents are blind and move randomly
+- [ ] creation of agent and grass at random places
+- [ ] initializing: grid size, num of rabbits in the beginning, number of grass in the beginning
+- [ ] implement birth threshold, when rabbit reaches certain energy level it reproduces; makes one new rabbit; it cannot reproduce twice in one thick since reproduction takes some energy too (CHECK: what amount?)
+- [ ] implement the death of the agent, when energy is 0
+- [ ] grass grows with every tick, total amount with every thick is initialized; CHECK: total 50 or added 50? It has to be possible to fully control the total amount of grass being grown at each simulation step.
+- [ ] check that all setters/getters are there 
+- [ ] write down the assuptions for the model we concluded are the best
+- [ ] model can be used to explore the competitive advantages of these variables we have
+- [ ] create population plot to observe the evolution of the rabbits and the grass. CHECK: is that the plot with two different color lines that are changing with every simulation tick?
+- [ ] check if ```java -jar *.jar "" false``` command works fine
+- [ ] write down java docs for every method implemented
+- [ ] make sure Instructions and Delivarable sections are correctly completed in the end
+

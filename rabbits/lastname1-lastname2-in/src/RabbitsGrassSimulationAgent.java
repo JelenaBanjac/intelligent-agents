@@ -4,8 +4,10 @@ import uchicago.src.sim.gui.SimGraphics;
 
 /**
  * Class that implements the simulation agent for the rabbits grass simulation.
-
+ *
+ *
  * @author
+ * Swiss Federal Institute of Technology in Lausanne (EPFL), Switzerland
  */
 
 public class RabbitsGrassSimulationAgent implements Drawable {
