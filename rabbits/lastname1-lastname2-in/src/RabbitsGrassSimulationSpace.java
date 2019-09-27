@@ -52,6 +52,10 @@ public class RabbitsGrassSimulationSpace {
 		return grassSpace;
 	}
 	
+	public Object2DGrid getCurrentRabbitSpace() {
+		return rabbitSpace;
+	}
+	
 	public boolean isCellOccupied(int x, int y) {
 		boolean retVal = false;
 		if (rabbitSpace.getObjectAt(x, y) != null) retVal = true;
@@ -69,6 +73,7 @@ public class RabbitsGrassSimulationSpace {
 		    if (isCellOccupied(x,y) == false) {
 		    	rabbitSpace.putObjectAt(x, y, rabbit);
 		        rabbit.setXY(x,y);
+		        rabbit.setRabbitGrassSimulationSpace(this);  // Rabbits learn their space
 		        retVal = true;
 		    }
 		    count++;
@@ -76,5 +81,17 @@ public class RabbitsGrassSimulationSpace {
 		}
 		
 		return retVal;
+	}
+	
+	public void removeRabbitAt(int x, int y) {
+		// Remove dead rabbits
+		rabbitSpace.putObjectAt(x, y, null);
+	}
+	
+	public int takeGrassAt(int x, int y) {
+		// Rabbits eat grass
+		int grass = getGrassAt(x, y);
+		grassSpace.putObjectAt(x, y, new Integer(0));
+		return grass;
 	}
 }

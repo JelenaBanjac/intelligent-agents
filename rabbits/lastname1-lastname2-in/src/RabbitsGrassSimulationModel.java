@@ -1,11 +1,15 @@
 import java.awt.Color;
 import java.util.ArrayList;
 
+import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimModelImpl;
 import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
+import uchicago.src.sim.gui.Object2DDisplay;
 import uchicago.src.sim.gui.Value2DDisplay;
+import uchicago.src.sim.space.Object2DGrid;
+import uchicago.src.sim.util.SimUtilities;
 import uchicago.src.sim.engine.SimInit;
 
 /**
@@ -53,6 +57,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		System.out.println("Running setup");
 		rgsSpace = null;
 		rabbitsList = new ArrayList();
+		// we want to run the object in time steps with interval 1
+		schedule = new Schedule(1);
 		
 		if (displaySurf != null) {
 			displaySurf.dispose();
@@ -90,6 +96,34 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	
 	public void buildSchedule() {
 		System.out.println("Running BuildSchedule");
+		
+		// Add step action in schedule
+		class RabbitGrassSimulationStep extends BasicAction {
+			public void execute() {
+				SimUtilities.shuffle(rabbitsList);
+				for (int i = 0; i < rabbitsList.size(); i++) {
+					RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
+					rgsa.step();
+				}
+				
+				int deadRabbits = reapDeadRabbits();
+				for (int i = 0; i < deadRabbits; i++) {
+					addNewRabbit();
+				}
+				
+				displaySurf.updateDisplay();
+			}
+		}
+		schedule.scheduleActionBeginning(0, new RabbitGrassSimulationStep());
+		
+		// Add count living rabbits action in schedule 
+		class RabbitGrassSimulationCountLiving extends BasicAction {
+			public void execute() {
+				countLivingRabbits();
+			}
+		}
+		schedule.scheduleActionAtInterval(10, new RabbitGrassSimulationCountLiving());
+		
 	}
 	
 	public void buildDisplay() {
@@ -102,10 +136,17 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    }
 	    map.mapColor(0, Color.white);
 
-	    Value2DDisplay displayMoney =
+	    // Grass
+	    Value2DDisplay displayGrass =
 	        new Value2DDisplay(rgsSpace.getCurrentGrassSpace(), map);
-
-	    displaySurf.addDisplayable(displayMoney, "Money");
+	    // Rabbit
+	    Object2DDisplay displayRabbits = 
+	    	new Object2DDisplay(rgsSpace.getCurrentGrassSpace());
+	    
+	    // Grass
+	    displaySurf.addDisplayable(displayGrass, "Grass");
+	    // Agents
+	    displaySurf.addDisplayable(displayRabbits, "Rabbits");
 
 	}
 	
@@ -114,6 +155,21 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		rabbitsList.add(r);
 		rgsSpace.addRabbit(r);
 	}
+	
+	private int reapDeadRabbits(){
+		int count = 0;
+		
+		for(int i = (rabbitsList.size() - 1); i >= 0 ; i--) {
+			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
+		    
+			if (rgsa.getEnergy() < 1){
+		        rgsSpace.removeRabbitAt(rgsa.getX(), rgsa.getY());
+		        rabbitsList.remove(i);
+		        count++;
+		    }
+		}
+		return count;
+	}
 
 	public String[] getInitParam() {
 		// TODO Auto-generated method stub
@@ -121,6 +177,17 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		// Do "not" modify the parameters names provided in the skeleton code, you can add more if you want 
 		String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
 		return params;
+	}
+	
+	private int countLivingRabbits() {
+	    int livingRabbits = 0;
+	    for(int i = 0; i < rabbitsList.size(); i++){
+	      RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
+	      if(rgsa.getEnergy() > 0) livingRabbits++;
+	    }
+	    System.out.println("Number of living rabbits is: " + livingRabbits);
+
+	    return livingRabbits;
 	}
 
 	public String getName() {

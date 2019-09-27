@@ -1,3 +1,5 @@
+import java.awt.Color;
+
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
 
@@ -19,6 +21,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	// private int stepsToLive;
 	private static int IDNumber = 0;
 	private int ID;
+	private RabbitsGrassSimulationSpace rgsSpace;
 	
 	public RabbitsGrassSimulationAgent(int energyInit) {
 		x = -1;
@@ -29,14 +32,16 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		ID = IDNumber;
 	}
 	
-	public void draw(SimGraphics arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 	
 	public void setXY(int newX, int newY) {
 		x = newX;
 		y = newY;
+	}
+	
+	public void setRabbitGrassSimulationSpace(RabbitsGrassSimulationSpace rgss) {
+		// Agents learn their place
+		rgsSpace = rgss;
 	}
 	
 	public String getID() {
@@ -56,13 +61,33 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public int getX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return x;
 	}
 
 	public int getY() {
-		// TODO Auto-generated method stub
-		return 0;
+		return y;
+	}
+	
+	public void draw(SimGraphics G) {
+		if (energy > 10) {
+			G.drawFastRoundRect(Color.blue);
+		} 
+		else if ( (5 < energy) && (energy < 10) )
+		{
+			G.drawFastRoundRect(Color.yellow);
+		} 
+		else 
+		{
+			G.drawFastRoundRect(Color.red);
+		}
+		
+	}
+	
+	public void step() {
+		// Every step of schedule, rabbit loses energy
+		energy--;
+		// Every step of schedule, rabbit eats the grass if there is any
+		energy += rgsSpace.takeGrassAt(x, y);
 	}
 
 }
