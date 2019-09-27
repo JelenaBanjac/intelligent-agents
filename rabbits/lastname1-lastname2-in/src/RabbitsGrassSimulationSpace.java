@@ -94,4 +94,17 @@ public class RabbitsGrassSimulationSpace {
 		grassSpace.putObjectAt(x, y, new Integer(0));
 		return grass;
 	}
+	
+	public boolean moveRabbitAt(int x, int y, int newX, int newY) {
+		// Rabbits on the move
+		boolean retVal = false;
+		if(!isCellOccupied(newX, newY)){
+			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitSpace.getObjectAt(x, y);
+		    removeRabbitAt(x,y);
+		    rgsa.setXY(newX, newY);
+		    rabbitSpace.putObjectAt(newX, newY, rgsa);
+		    retVal = true;
+		}
+		return retVal;
+	}
 }

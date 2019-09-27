@@ -2,6 +2,7 @@ import java.awt.Color;
 
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
+import uchicago.src.sim.space.Object2DGrid;
 
 
 /**
@@ -14,8 +15,12 @@ import uchicago.src.sim.gui.SimGraphics;
 
 public class RabbitsGrassSimulationAgent implements Drawable {
 
+	// Rabbits coordinates
 	private int x;
 	private int y;
+	// Rabbits on the move
+	private int vX;
+	private int vY;
 	// private int grass;
 	private int energy;
 	// private int stepsToLive;
@@ -27,6 +32,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		x = -1;
 		y = -1;
 		energy = energyInit;
+		setVxVy();
 		// stepsToLive = (int)((Math.random() * (maxLifespan - minLifespan)) + minLifespan);
 		IDNumber++;
 		ID = IDNumber;
@@ -37,6 +43,15 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	public void setXY(int newX, int newY) {
 		x = newX;
 		y = newY;
+	}
+	
+	public void setVxVy() {
+		vX = 0;
+		vY = 0;
+		while ((vX == 0) && (vY == 0) ) {
+			vX = (int)Math.floor(Math.random() * 3) - 1;
+		    vY = (int)Math.floor(Math.random() * 3) - 1;
+		}
 	}
 	
 	public void setRabbitGrassSimulationSpace(RabbitsGrassSimulationSpace rgss) {
@@ -84,10 +99,30 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 	
 	public void step() {
+		int newX = x + vX;
+		int newY = y + vY;
+		
+		Object2DGrid grid = rgsSpace.getCurrentRabbitSpace();
+		newX = (newX + grid.getSizeX()) % grid.getSizeX();
+		newY = (newY + grid.getSizeY()) % grid.getSizeY();
+
+	    if (tryMove(newX, newY)){
+	    	// Every step of schedule, rabbit eats the grass if there is any
+			energy += rgsSpace.takeGrassAt(x, y);
+	    }
+	    else
+	    {
+	        setVxVy();
+	    }
+	    
 		// Every step of schedule, rabbit loses energy
 		energy--;
-		// Every step of schedule, rabbit eats the grass if there is any
-		energy += rgsSpace.takeGrassAt(x, y);
+		
 	}
+	
+	private boolean tryMove(int newX, int newY){
+		return rgsSpace.moveRabbitAt(x, y, newX, newY);
+	}
+
 
 }
