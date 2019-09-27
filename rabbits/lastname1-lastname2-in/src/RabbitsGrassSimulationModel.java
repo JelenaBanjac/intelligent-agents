@@ -80,6 +80,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		for (int i = 0; i < numRabbits; i++) {
 			addNewRabbit();
 		}
+		
+		// Reporting
+		for (int i = 0; i < rabbitsList.size(); i++) {
+			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
+			rgsa.report();
+		}
 	}
 	
 	public void buildSchedule() {
