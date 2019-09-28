@@ -6,10 +6,13 @@ import uchicago.src.sim.space.Object2DGrid;
  */
 
 public class RabbitsGrassSimulationSpace {
-	
+	// Grass in Space
 	private Object2DGrid grassSpace;
-	// Agents in Space
+	// Rabbits in Space
 	private Object2DGrid rabbitSpace;
+	
+	// Max number of Grass in Space
+	public static final int MAX_GRASS = 50;
 	
 	public RabbitsGrassSimulationSpace(int size) {
 		grassSpace = new Object2DGrid(size, size);
@@ -31,7 +34,7 @@ public class RabbitsGrassSimulationSpace {
 			int y = (int)(Math.random()*(grassSpace.getSizeY()));
 		
 			// Get the value of the object at those coordinates
-			int currentValue = getGrassAt(x, y);
+			int currentValue = Math.min(getGrassAt(x, y), MAX_GRASS - 1); // getGrassAt(x, y);
 			// Replace the Integer object with another one with the new value
 			grassSpace.putObjectAt(x, y, new Integer(currentValue + 1));
 		}
@@ -40,7 +43,7 @@ public class RabbitsGrassSimulationSpace {
 	public int getGrassAt(int x, int y) {
 		int i;
 		if (grassSpace.getObjectAt(x, y) != null) {
-			i = ((Integer)grassSpace.getObjectAt(x, y)).intValue();
+			i = ((Integer) grassSpace.getObjectAt(x, y)).intValue();
 		} else {
 			i = 0;
 		}
@@ -68,9 +71,10 @@ public class RabbitsGrassSimulationSpace {
 		int countLimit = 10 * rabbitSpace.getSizeX() * rabbitSpace.getSizeY();
 		
 		while ( (retVal == false) && (count < countLimit) ) {
-			int x = (int)(Math.random()*(rabbitSpace.getSizeX()));
-			int y = (int)(Math.random()*(rabbitSpace.getSizeY()));
-		    if (isCellOccupied(x,y) == false) {
+			int x = (int)(Math.random() * (rabbitSpace.getSizeX()));
+			int y = (int)(Math.random() * (rabbitSpace.getSizeY()));
+		    
+			if (isCellOccupied(x,y) == false) {
 		    	rabbitSpace.putObjectAt(x, y, rabbit);
 		        rabbit.setXY(x,y);
 		        rabbit.setRabbitGrassSimulationSpace(this);  // Rabbits learn their space
@@ -106,5 +110,16 @@ public class RabbitsGrassSimulationSpace {
 		    retVal = true;
 		}
 		return retVal;
+	}
+	
+	public int getTotalGrass() {
+		// Used for making plots
+		int totalGrass = 0;
+		for(int i = 0; i < rabbitSpace.getSizeX(); i++){
+			for(int j = 0; j < rabbitSpace.getSizeY(); j++){
+				totalGrass += getGrassAt(i, j);
+		    }
+		}
+		return totalGrass;
 	}
 }

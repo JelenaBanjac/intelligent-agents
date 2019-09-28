@@ -14,7 +14,6 @@ import uchicago.src.sim.space.Object2DGrid;
  */
 
 public class RabbitsGrassSimulationAgent implements Drawable {
-
 	// Rabbits coordinates
 	private int x;
 	private int y;
@@ -48,7 +47,8 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	public void setVxVy() {
 		vX = 0;
 		vY = 0;
-		while ((vX == 0) && (vY == 0) ) {
+		//while ((vX == 0) && (vY == 0) ) {
+		while (!((vX == 0 && vY != 0) || (vX != 0 && vY == 0))) {
 			vX = (int)Math.floor(Math.random() * 3) - 1;
 		    vY = (int)Math.floor(Math.random() * 3) - 1;
 		}
@@ -65,6 +65,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	
 	public int getEnergy() {
 		return energy;
+	}
+	
+	public void setEnergy(int e) {
+		energy = e;
 	}
 	
 	public void report() {
@@ -84,17 +88,21 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 	
 	public void draw(SimGraphics G) {
-		if (energy > 10) {
-			G.drawFastRoundRect(Color.blue);
-		} 
-		else if ( (5 < energy) && (energy < 10) )
-		{
-			G.drawFastRoundRect(Color.yellow);
-		} 
-		else 
-		{
-			G.drawFastRoundRect(Color.red);
+//		if (energy > 10) {
+//			G.drawFastRoundRect(Color.blue);
+//		} 
+//		else if ( (5 < energy) && (energy < 10) )
+//		{
+//			G.drawFastRoundRect(Color.yellow);
+//		} 
+//		else 
+//		{
+//			G.drawFastRoundRect(Color.red);
+//		}
+		if (energy > 0) {
+			G.drawOval(Color.blue);
 		}
+
 		
 	}
 	
@@ -109,9 +117,13 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	    if (tryMove(newX, newY)){
 	    	// Every step of schedule, rabbit eats the grass if there is any
 			energy += rgsSpace.takeGrassAt(x, y);
+			// TODO: check
+			rgsSpace.takeGrassAt(x, y);
 	    }
 	    else
 	    {
+	    	// If there was a collision between 2 rabbits, we would implement it here
+	    	// However, by the task specification, we don't have collisions
 	        setVxVy();
 	    }
 	    
