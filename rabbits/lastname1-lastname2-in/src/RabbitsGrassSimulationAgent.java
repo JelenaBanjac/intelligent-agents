@@ -73,9 +73,9 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	
 	public void report() {
 		System.out.println(getID() + 
-						   " at " + 
+						   " at (" + 
 						   x + ", " + y +
-						   " has " + 
+						   ") has " + 
 						   getEnergy() + " energy to live.");
 	}
 
@@ -88,22 +88,13 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 	
 	public void draw(SimGraphics G) {
-//		if (energy > 10) {
-//			G.drawFastRoundRect(Color.blue);
-//		} 
-//		else if ( (5 < energy) && (energy < 10) )
-//		{
-//			G.drawFastRoundRect(Color.yellow);
-//		} 
-//		else 
-//		{
-//			G.drawFastRoundRect(Color.red);
-//		}
-		if (energy > 0) {
-			G.drawOval(Color.blue);
+		if (energy > 10) {
+			G.drawFastRoundRect(Color.blue);
+		} else if ( (5 < energy) && (energy < 10) ) {
+			G.drawFastRoundRect(Color.yellow);
+		} else {
+			G.drawFastRoundRect(Color.red);
 		}
-
-		
 	}
 	
 	public void step() {
@@ -118,7 +109,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	    	// Every step of schedule, rabbit eats the grass if there is any
 			energy += rgsSpace.takeGrassAt(x, y);
 			// TODO: check
-			rgsSpace.takeGrassAt(x, y);
+			//rgsSpace.takeGrassAt(x, y);
 	    }
 	    else
 	    {

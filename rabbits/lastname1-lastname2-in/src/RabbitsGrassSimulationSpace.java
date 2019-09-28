@@ -80,10 +80,9 @@ public class RabbitsGrassSimulationSpace {
 		        rabbit.setRabbitGrassSimulationSpace(this);  // Rabbits learn their space
 		        retVal = true;
 		    }
-		    count++;
-			
+		    count++;	
 		}
-		
+	
 		return retVal;
 	}
 	
@@ -102,7 +101,7 @@ public class RabbitsGrassSimulationSpace {
 	public boolean moveRabbitAt(int x, int y, int newX, int newY) {
 		// Rabbits on the move
 		boolean retVal = false;
-		if(!isCellOccupied(newX, newY)){
+		if (!isCellOccupied(newX, newY)) {
 			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitSpace.getObjectAt(x, y);
 		    removeRabbitAt(x,y);
 		    rgsa.setXY(newX, newY);

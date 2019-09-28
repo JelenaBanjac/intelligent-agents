@@ -44,7 +44,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	
 	private Schedule schedule;
 	private RabbitsGrassSimulationSpace rgsSpace;
-	private ArrayList rabbitsList;
+	private ArrayList<RabbitsGrassSimulationAgent> rabbitsList;
 	private DisplaySurface displaySurf;
 	private OpenSequenceGraph plots;
 	
@@ -89,7 +89,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	
 	public void setup() {
 		rgsSpace = null;
-		rabbitsList = new ArrayList();
+		rabbitsList = new ArrayList<RabbitsGrassSimulationAgent>();
 		// We want to run the object in time steps with interval 1
 		schedule = new Schedule(1);
 		
@@ -124,16 +124,17 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 	
 	public void buildModel() {
-		//System.out.println("Running BuildModel");
-		
+		// Initializing the space
 		rgsSpace = new RabbitsGrassSimulationSpace(gridSize);
+		
+		// Spreading the initial number of grass over the initialized space
 		rgsSpace.spreadGrass(numInitGrass);
 		
+		// Spreading the initial number of rabbits over the initialized space
 		for (int i = 0; i < numInitRabbits; i++) {
 			addNewRabbit();
 		}
 		
-		// TODO: check
 		// Reporting
 		for (int i = 0; i < rabbitsList.size(); i++) {
 			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
@@ -142,20 +143,23 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 	
 	public void buildSchedule() {
-		//System.out.println("Running BuildSchedule");
-		
 		// Add step action in schedule
 		class RabbitGrassSimulationStep extends BasicAction {
 			public void execute() {
 				SimUtilities.shuffle(rabbitsList);
 				for (int i = 0; i < rabbitsList.size(); i++) {
 					RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
+					// Report with every step as well
+					rgsa.report();
+					// Make a step in the simulation
 					rgsa.step();
 				}
 				
 				// Remove dead rabbits
 				reapDeadRabbits();
+				// Reproduce the rabbits
 				reproduceRabbits();
+				// Spread new grass over the space
 				rgsSpace.spreadGrass(grassGrowthRate);
 				
 				displaySurf.updateDisplay();
@@ -163,45 +167,40 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 		schedule.scheduleActionBeginning(0, new RabbitGrassSimulationStep());
 		
-		// TODO: check
-//		// Add count living rabbits action in schedule 
-//		class RabbitGrassSimulationCountLiving extends BasicAction {
-//			public void execute() {
-//				countLivingRabbits();
-//			}
-//		}
-//		schedule.scheduleActionAtInterval(10, new RabbitGrassSimulationCountLiving());
+		// Add count living rabbits action in schedule 
+		class RabbitGrassSimulationCountLiving extends BasicAction {
+			public void execute() {
+				countLivingRabbits();
+			}
+		}
+		schedule.scheduleActionAtInterval(5.0, new RabbitGrassSimulationCountLiving());
 		
 		// Add new actions
 		class RabbitsGrassSimulationUpdateGrassInSpace extends BasicAction {
-		      public void execute(){
-		        plots.step();
-		      }
+			public void execute() {
+				plots.step();
 		    }
-
-		    schedule.scheduleActionAtInterval(10, new RabbitsGrassSimulationUpdateGrassInSpace());
+		}
+		schedule.scheduleActionAtInterval(10.0, new RabbitsGrassSimulationUpdateGrassInSpace());
 	}
 	
 	public void buildDisplay() {
-		//System.out.println("Running BuildDisplay");
-		
 		ColorMap map = new ColorMap();
 
-		// TODO: check
-//	    for(int i = 1; i < 16; i++){
-//	    	map.mapColor(i, new Color((int)(i * 8 + 127), 0, 0));
-//	    }
-		for(int i = 1; i < 32; i++){
-	    	map.mapColor(i, new Color(0, (int)(i * 4 + 127), 0));
+		// TODO: check the number 16
+		for(int i = 1; i < 16; i++) {
+			// Shades of green color (R, G, B) = (0, num, 0)
+	    	map.mapColor(i, new Color(0, (int)(i * 8 + 127), 0));
 	    }
-	    map.mapColor(0, Color.gray);
+		// White color is when there is no grass in the cell (background color)
+	    map.mapColor(0, Color.white);
 
 	    // Grass
 	    Value2DDisplay displayGrass =
 	        new Value2DDisplay(rgsSpace.getCurrentGrassSpace(), map);
 	    // Rabbit
 	    Object2DDisplay displayRabbits = 
-	    	new Object2DDisplay(rgsSpace.getCurrentGrassSpace());
+	    	new Object2DDisplay(rgsSpace.getCurrentRabbitSpace());
 	    
 	    // Grass (allows user to click on display surface and get the info)
 	    displaySurf.addDisplayableProbeable(displayGrass, "Grass");
@@ -220,19 +219,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		rgsSpace.addRabbit(r);
 	}
 	
-	private int reapDeadRabbits(){
-		int count = 0;
-		
+	private void reapDeadRabbits(){
 		for(int i = (rabbitsList.size() - 1); i >= 0 ; i--) {
 			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
 		    
 			if (rgsa.getEnergy() < 1){
 		        rgsSpace.removeRabbitAt(rgsa.getX(), rgsa.getY());
 		        rabbitsList.remove(i);
-		        count++;
 		    }
 		}
-		return count;
 	}
 	
 	private void reproduceRabbits() {
@@ -246,9 +241,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 
-
 	public String[] getInitParam() {
-		// TODO Auto-generated method stub
 		// Parameters to be set by users via the Repast UI slider bar
 		// Do "not" modify the parameters names provided in the skeleton code, you can add more if you want 
 		String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
@@ -257,9 +250,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	
 	private int countLivingRabbits() {
 	    int livingRabbits = 0;
-	    for(int i = 0; i < rabbitsList.size(); i++){
-	      RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
-	      if(rgsa.getEnergy() > 0) livingRabbits++;
+	    for(int i = 0; i < rabbitsList.size(); i++) {
+	    	RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
+	    	if (rgsa.getEnergy() > 0) livingRabbits++;
 	    }
 	    System.out.println("Number of living rabbits is: " + livingRabbits);
 
@@ -323,5 +316,4 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		grassGrowthRate = ggr;
 	}
 
-		
 }
