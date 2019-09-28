@@ -29,10 +29,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private int ID;
 	private RabbitsGrassSimulationSpace rgsSpace;
 	
-    /**
-     * Constructor that takes the initial energy of the agent
-     * @param energyInit Initial rabbit energy
-     */
+	/**
+	 * Constructor that takes the initial energy of the agent
+	 * @param energyInit Initial rabbit energy
+	 */
 	public RabbitsGrassSimulationAgent(int energyInit) {
 		x = -1;
 		y = -1;
@@ -43,26 +43,26 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		ID = IDNumber;
 	}
 	
-    /**
-     * Set a new X and Y position for the agent.
-     * Note that this affects only the agent's internal
-     * assessment of its own location, and thus should
-     * be called only after the Space object has confirmed
-     * that this location is acceptable.
-     * @param newX
-     * @param newY
-     */
+	/**
+	 * Set a new X and Y position for the agent.
+	 * Note that this affects only the agent's internal
+	 * assessment of its own location, and thus should
+	 * be called only after the Space object has confirmed
+	 * that this location is acceptable.
+	 * @param newX
+	 * @param newY
+	 */
 	public void setXY(int newX, int newY) {
 		x = newX;
 		y = newY;
 	}
 	
-    /**
-     * Set this agent's velocity in the X and Y direction
-     * Actually chooses a new velocity randomly; velocity
-     * will be one of the 8 possible variations where
-     * X and Y are -1, 0, or 1 and Y but both are not zero 
-     */
+	/**
+	 * Set this agent's velocity in the X and Y direction
+	 * Actually chooses a new velocity randomly; velocity
+	 * will be one of the 8 possible variations where
+	 * X and Y are -1, 0, or 1 and Y but both are not zero 
+	 */
 	public void setVxVy() {
 		vX = 0;
 		vY = 0;
@@ -73,30 +73,30 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		}
 	}
 	
-    /**
-     * Set this agent's pointer to the space object
-     * in which it resides.
-     * @param rgss The space object into which the agent is
-     * being placed
-     */
+	/**
+	 * Set this agent's pointer to the space object
+	 * in which it resides.
+	 * @param rgss The space object into which the agent is
+	 * being placed
+	 */
 	public void setRabbitGrassSimulationSpace(RabbitsGrassSimulationSpace rgss) {
 		// Agents learn their place
 		rgsSpace = rgss;
 	}
 	
-    /**
-     * Get this agent's internal unique ID
-     * @return a String representing the unique ID for this agent;
-     * this will be in the form "Rabbit-101"
-     */
+	/**
+	 * Get this agent's internal unique ID
+	 * @return a String representing the unique ID for this agent;
+	 * this will be in the form "Rabbit-101"
+	 */
 	public String getID() {
 		return "Rabbit-" + ID;
 	}
 	
-    /**
-     * Get the amount of energy held by this agent
-     * @return the amount of energy this agent has
-     */
+	/**
+	 * Get the amount of energy held by this agent
+	 * @return the amount of energy this agent has
+	 */
 	public int getEnergy() {
 		return energy;
 	}

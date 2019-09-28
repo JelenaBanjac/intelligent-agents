@@ -328,15 +328,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	 * Get the parameter indicating the number of rabbits in this model
 	 * @return the number of rabbits in the model
 	 */
-    public int getNumInitRabbits() {
-	    return numInitRabbits;
+	public int getNumInitRabbits() {
+		return numInitRabbits;
 	}
 
-    /**
-     * Set the parameter indicating the initial number of rabbits for this
-     * model.
-     * @param na new value for initial number of rabbits
-     */
+	/**
+	 * Set the parameter indicating the initial number of rabbits for this
+	 * model.
+	 * @param na new value for initial number of rabbits
+	 */
 	public void setNumInitRabbits(int nr) {
 		numInitRabbits = nr;
 	}
@@ -345,11 +345,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	 * Get the size of the space in the model
 	 * @return the size of the space object in the model
 	 */
-    public int getGridSize(){
-	    return gridSize;
+	public int getGridSize(){
+		return gridSize;
 	}
 
-    /**
+	/**
 	 * Set the size of the space in the model
 	 * @param gs the size of the space object in the model
 	 */
