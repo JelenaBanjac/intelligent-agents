@@ -21,7 +21,16 @@ import uchicago.src.sim.engine.SimInit;
  * order to run Repast simulation. It manages the entire RePast
  * environment and the simulation.
  *
+ * The model's dynamics are straightforward: a space
+ * is populated with rabbits. Grass is distributed on
+ * the landscape; rabbits move and eat the grass.
+ * There is no collisions between two rabbits.
+ * Rabbits have limited lifespans based on the energy they have
+ * so if the energy is 0, the rabbit is dead. Also, after certain
+ * energy level, the new rabbit is born.
+ * 
  * @author 
+ * Swiss Federal Institute of Technology in Lausanne (EPFL), Switzerland
  */
 
 
@@ -87,6 +96,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		
 	}
 	
+	/**
+	 * Tear down any existing pieces of the model and
+	 * prepare for a new run.
+	 */
 	public void setup() {
 		rgsSpace = null;
 		rabbitsList = new ArrayList<RabbitsGrassSimulationAgent>();
@@ -114,6 +127,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		this.registerMediaProducer("Plot", plots);
 	}
 
+	/**
+	 * Initialize the model by building the separate elements that make
+	 * up the model
+	 */
 	public void begin() {
 		buildModel();
 		buildSchedule();
@@ -123,6 +140,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		plots.display();
 	}
 	
+	/**
+	 * Initialize the basic model by creating the space
+	 * and populating it with grass and rabbits.
+	 */
 	public void buildModel() {
 		// Initializing the space
 		rgsSpace = new RabbitsGrassSimulationSpace(gridSize);
@@ -142,6 +163,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 	
+	/**
+	 * Create the schedule object(s) that will be executed
+	 * during the running of the model
+	 */
 	public void buildSchedule() {
 		// Add step action in schedule
 		class RabbitGrassSimulationStep extends BasicAction {
@@ -184,6 +209,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		schedule.scheduleActionAtInterval(10.0, new RabbitsGrassSimulationUpdateGrassInSpace());
 	}
 	
+	/**
+	 * Build the display elements for this model.
+	 */
 	public void buildDisplay() {
 		ColorMap map = new ColorMap();
 
@@ -213,12 +241,18 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    plots.addSequence("Rabbits In Space", new RabbitsInSpace());
 	}
 	
+	/**
+	 * Add a new rabbit to this model's rabbit list and rabbit space
+	 */
 	private void addNewRabbit() {
 		RabbitsGrassSimulationAgent r = new RabbitsGrassSimulationAgent(rabbitEnergyInit);
 		rabbitsList.add(r);
 		rgsSpace.addRabbit(r);
 	}
 	
+	/**
+	 * Remove all dead rabbits from the rabbit list and rabbit space
+	 */
 	private void reapDeadRabbits(){
 		for(int i = (rabbitsList.size() - 1); i >= 0 ; i--) {
 			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
@@ -230,6 +264,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 	
+	/**
+	 * Reproduce new rabbits if any of the living ones reached the
+	 * birth threshold in energy level
+	 */
 	private void reproduceRabbits() {
 		for (int i = (rabbitsList.size() - 1); i >= 0; i--) {
 			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
@@ -240,14 +278,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			}
 		}
 	}
-
-	public String[] getInitParam() {
-		// Parameters to be set by users via the Repast UI slider bar
-		// Do "not" modify the parameters names provided in the skeleton code, you can add more if you want 
-		String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
-		return params;
-	}
 	
+	/**
+	 * Get a count of the living rabbits on the model's rabbit list.
+	 * @return count of the living rabbits on the rabbit list
+	 */
 	private int countLivingRabbits() {
 	    int livingRabbits = 0;
 	    for(int i = 0; i < rabbitsList.size(); i++) {
@@ -259,59 +294,135 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	    return livingRabbits;
 	}
 
+	/**
+	 * Get a String that serves as the name of the model
+	 * @return the name of the model
+	 */
 	public String getName() {
 		return "Rabbits Grass Simulation Model";
 	}
 
+	/**
+	 * Returns the Schedule object for this model; for use
+	 * internally by RePast
+	 * @return the Schedule object for this model
+	 */
 	public Schedule getSchedule() {
 		return schedule;
 	}
 	
-    public int getNumInitRabbits(){
+	/**
+	 * Get the string array that lists the initialization parameters
+	 * for this model
+	 * @return a String array that includes the names of all variables
+	 * that can be modified by the RePast user interface
+	 */
+	public String[] getInitParam() {
+		// Parameters to be set by users via the Repast UI slider bar
+		// Do "not" modify the parameters names provided in the skeleton code, you can add more if you want 
+		String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
+		return params;
+	}
+	
+	/**
+	 * Get the parameter indicating the number of rabbits in this model
+	 * @return the number of rabbits in the model
+	 */
+    public int getNumInitRabbits() {
 	    return numInitRabbits;
 	}
 
-	public void setNumInitRabbits(int nr){
+    /**
+     * Set the parameter indicating the initial number of rabbits for this
+     * model.
+     * @param na new value for initial number of rabbits
+     */
+	public void setNumInitRabbits(int nr) {
 		numInitRabbits = nr;
 	}
 	
+	/**
+	 * Get the size of the space in the model
+	 * @return the size of the space object in the model
+	 */
     public int getGridSize(){
 	    return gridSize;
 	}
 
+    /**
+	 * Set the size of the space in the model
+	 * @param gs the size of the space object in the model
+	 */
 	public void setGridSize(int gs){
 	    gridSize = gs;
 	}
 
-
+	/**
+	 * Get the value of the parameter initializing the total amount
+	 * of grass in this model
+	 * @return the initial value for the total amount of grass in the
+	 * model
+	 */
 	public int getNumInitGrass() {
 		return numInitGrass;
 	}
 
+	/**
+	 * Set the new value for the total amount of grass to be used when
+	 * initializing the simulation
+	 * @param i the new value for the total amount of grass
+	 */
 	public void setNumInitGrass(int i) {
 		numInitGrass = i;
 	}
 
+	/**
+	 * Get the value of the parameter initializing the initial
+	 * energy of the rabbit in this model
+	 * @return the initial energy level of the rabbit in the
+	 * model
+	 */
 	public int getRabbitEnergyInit() {
 		return rabbitEnergyInit;
 	}
 
+	/**
+	 * Set the new value for the initial energy of the rabbit to be used when
+	 * initializing the simulation
+	 * @param i the new value for the initial energy of the rabbit
+	 */
 	public void setRabbitEnergyInit(int i) {
 		rabbitEnergyInit = i;
 	}
 	
+	/**
+	 * Get the value energy level at which rabbits reproduce
+	 * @return the energy level at which rabbits reproduce
+	 */
 	public int getBirthThreshold() {
 		return birthThreshold;
 	}
 
+	/**
+	 * Set the new value for the energy at which rabbits reproduce
+	 * @param i the new value for the energy at which rabbits reproduce
+	 */
 	public void setBirthThreshold(int bt) {
 		birthThreshold = bt;
 	}
 
+	/**
+	 * Get the value of grass growth rate
+	 * @return the value of grass growth rate
+	 */
 	public int getGrassGrowthRate() {
 		return grassGrowthRate;
 	}
 
+	/**
+	 * Set the new value for the grass growth rate
+	 * @param i the new value for the grass growth rate
+	 */
 	public void setGrassGrowthRate(int ggr) {
 		grassGrowthRate = ggr;
 	}
