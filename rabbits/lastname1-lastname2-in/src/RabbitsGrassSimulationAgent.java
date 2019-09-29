@@ -1,4 +1,10 @@
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
@@ -22,9 +28,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	// Rabbits on the move
 	private int vX;
 	private int vY;
-	// private int grass;
 	private int energy;
-	// private int stepsToLive;
 	private static int IDNumber = 0;
 	private int ID;
 	private RabbitsGrassSimulationSpace rgsSpace;
@@ -145,13 +149,16 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	 * will be drawn
 	 */
 	public void draw(SimGraphics G) {
-		if (energy > 10) {
-			G.drawFastRoundRect(Color.blue);
-		} else if ( (5 < energy) && (energy < 10) ) {
-			G.drawFastRoundRect(Color.yellow);
-		} else {
-			G.drawFastRoundRect(Color.red);
+		if (energy > 0) {
+			BufferedImage img = null;
+			try {
+			    img = ImageIO.read(new File("img/rabbit.png"));
+			    G.drawImageToFit(img);
+			} catch (IOException e) {
+				G.drawFastRoundRect(Color.blue);
+			}
 		}
+
 	}
 	
 	/**
