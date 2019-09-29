@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
+import uchicago.src.reflector.RangePropertyDescriptor;
 import uchicago.src.sim.analysis.DataSource;
 import uchicago.src.sim.analysis.OpenSequenceGraph;
 import uchicago.src.sim.analysis.Sequence;
@@ -119,9 +120,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	 * prepare for a new run.
 	 */	
 	public void setup() {
-
-		
-
 		rgsSpace = null;
 		rabbitsList = new ArrayList<RabbitsGrassSimulationAgent>();
 		// We want to run the object in time steps with interval 1
@@ -139,59 +137,14 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			plots.dispose();
 	    }
 	    plots = null;
-	    
-	    // Sliders - initialize UI Components (ref: http://www.inverudio.com/programs/PredatorPrey/PredatorPreyModel.java.html)
-	 	modelManipulator.init();
- 		modelManipulator.addSlider("GridSize", 10, 100, 10, new SliderListener()
-         {
-             public void execute()
-             {
-                 if (isAdjusting)
-                 {
-                 	gridSize = value;
-                 }
-             }
-         });
- 		modelManipulator.addSlider("NumInitRabbits", 2, 100, 10, new SliderListener()
-         {
-             public void execute()
-             {
-                 if (isAdjusting)
-                 {
-                 	numInitRabbits = value;
-                 }
-             }
-         });
- 		modelManipulator.addSlider("NumInitGrass", 10, 100, 10, new SliderListener()
-         {
-             public void execute()
-             {
-                 if (isAdjusting)
-                 {
-                 	numInitGrass = value;
-                 }
-             }
-         });
- 		modelManipulator.addSlider("BirthThreshold", 10, 1000, 10, new SliderListener()
-         {
-             public void execute()
-             {
-                 if (isAdjusting)
-                 {
-                 	birthThreshold = value;
-                 }
-             }
-         });
- 		modelManipulator.addSlider("GrassGrowthRate", 1, 1000, 100, new SliderListener()
-         {
-             public void execute()
-             {
-                 if (isAdjusting)
-                 {
-                 	grassGrowthRate = value;
-                 }
-             }
-         });
+
+		// Sliders in Parameters Tab
+		addRangePropertyDescriptor("GridSize", 0, 100, 20);
+		addRangePropertyDescriptor("NumInitRabbits", 0, 400, 100);
+		addRangePropertyDescriptor("NumInitGrass", 0, 400, 100);
+		addRangePropertyDescriptor("BirthThreshold", 0, 1000, 200);
+		addRangePropertyDescriptor("GrassGrowthRate", 0, 1000, 200);
+		addRangePropertyDescriptor("RabbitEnergyInit", 0, 50, 10);
 		
 		// Create Displays
 		displaySurf = new DisplaySurface(this, "Rabbit Grass Simulation Model, Window 1");
@@ -504,4 +457,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		grassGrowthRate = ggr;
 	}
 
+	/**
+	 * Add slider for a parameter to GUI.
+	 * @param s the name of the parameter
+	 * @param i the lower end of the scale
+	 * @param i1 the upper end of the scale
+	 * @param i2 the step size
+	 */
+	public void addRangePropertyDescriptor(String s, int i, int i1, int i2) {
+		RangePropertyDescriptor d = new RangePropertyDescriptor(s, i, i1, i2);
+		descriptors.put(s, d);
+	}
 }
