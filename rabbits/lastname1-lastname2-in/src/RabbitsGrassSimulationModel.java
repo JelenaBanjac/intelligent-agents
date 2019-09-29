@@ -1,12 +1,14 @@
 import java.awt.Color;
 import java.util.ArrayList;
 
+
 import uchicago.src.sim.analysis.DataSource;
 import uchicago.src.sim.analysis.OpenSequenceGraph;
 import uchicago.src.sim.analysis.Sequence;
 import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimModelImpl;
+import uchicago.src.sim.event.SliderListener;
 import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
 import uchicago.src.sim.gui.Object2DDisplay;
@@ -50,6 +52,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private int rabbitEnergyInit = RABBIT_ENERGY_INIT;
 	private int birthThreshold = BIRTH_THRESHOLD;
 	private int grassGrowthRate = GRASS_GROWTH_RATE;
+	private int rabbitReproductionEnergy = grassGrowthRate;
 	
 	private Schedule schedule;
 	private RabbitsGrassSimulationSpace rgsSpace;
@@ -80,7 +83,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			return (double) rabbitsList.size(); 
 		}
 	}
-
+	
 	
 	public static void main(String[] args) {
 		
@@ -99,13 +102,17 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	/**
 	 * Tear down any existing pieces of the model and
 	 * prepare for a new run.
-	 */
+	 */	
 	public void setup() {
+
+		
+
 		rgsSpace = null;
 		rabbitsList = new ArrayList<RabbitsGrassSimulationAgent>();
 		// We want to run the object in time steps with interval 1
 		schedule = new Schedule(1);
 		
+
 		// Tear down Displays
 		if (displaySurf != null) {
 			displaySurf.dispose();
@@ -117,6 +124,59 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			plots.dispose();
 	    }
 	    plots = null;
+	    
+	    // Sliders - initialize UI Components (ref: http://www.inverudio.com/programs/PredatorPrey/PredatorPreyModel.java.html)
+	 	modelManipulator.init();
+ 		modelManipulator.addSlider("GridSize", 10, 100, 10, new SliderListener()
+         {
+             public void execute()
+             {
+                 if (isAdjusting)
+                 {
+                 	gridSize = value;
+                 }
+             }
+         });
+ 		modelManipulator.addSlider("NumInitRabbits", 2, 100, 10, new SliderListener()
+         {
+             public void execute()
+             {
+                 if (isAdjusting)
+                 {
+                 	numInitRabbits = value;
+                 }
+             }
+         });
+ 		modelManipulator.addSlider("NumInitGrass", 10, 100, 10, new SliderListener()
+         {
+             public void execute()
+             {
+                 if (isAdjusting)
+                 {
+                 	numInitGrass = value;
+                 }
+             }
+         });
+ 		modelManipulator.addSlider("BirthThreshold", 10, 1000, 10, new SliderListener()
+         {
+             public void execute()
+             {
+                 if (isAdjusting)
+                 {
+                 	birthThreshold = value;
+                 }
+             }
+         });
+ 		modelManipulator.addSlider("GrassGrowthRate", 1, 1000, 100, new SliderListener()
+         {
+             public void execute()
+             {
+                 if (isAdjusting)
+                 {
+                 	grassGrowthRate = value;
+                 }
+             }
+         });
 		
 		// Create Displays
 		displaySurf = new DisplaySurface(this, "Rabbit Grass Simulation Model, Window 1");
@@ -125,6 +185,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		// Register Displays
 		registerDisplaySurface("Rabbit Grass Simulation Model, Window 1", displaySurf);
 		this.registerMediaProducer("Plot", plots);
+		
 	}
 
 	/**
@@ -273,7 +334,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
 			
 			if (rgsa.getEnergy() > birthThreshold) {
-				rgsa.setEnergy(rgsa.getEnergy() - rabbitEnergyInit);
+				rgsa.setEnergy(rgsa.getEnergy() - rabbitReproductionEnergy);
 				addNewRabbit();
 			}
 		}
