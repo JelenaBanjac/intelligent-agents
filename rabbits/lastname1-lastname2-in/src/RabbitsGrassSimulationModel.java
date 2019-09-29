@@ -320,7 +320,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	public String[] getInitParam() {
 		// Parameters to be set by users via the Repast UI slider bar
 		// Do "not" modify the parameters names provided in the skeleton code, you can add more if you want 
-		String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
+		String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold",
+							"RabbitEnergyInit"};
 		return params;
 	}
 	
