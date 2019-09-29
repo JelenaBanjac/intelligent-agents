@@ -1,4 +1,7 @@
 import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import uchicago.src.sim.analysis.DataSource;
@@ -14,6 +17,8 @@ import uchicago.src.sim.gui.Value2DDisplay;
 import uchicago.src.sim.space.Object2DGrid;
 import uchicago.src.sim.util.SimUtilities;
 import uchicago.src.sim.engine.SimInit;
+
+import javax.imageio.ImageIO;
 
 /**
  * Class that implements the simulation model for the rabbits grass
@@ -56,6 +61,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private ArrayList<RabbitsGrassSimulationAgent> rabbitsList;
 	private DisplaySurface displaySurf;
 	private OpenSequenceGraph plots;
+
 	
 	class GrassInSpace implements DataSource, Sequence {
 		@Override
@@ -93,7 +99,16 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			init.loadModel(model, "", false);
 		else
 			init.loadModel(model, args[0], Boolean.parseBoolean(args[1]));
-		
+
+
+		// Load rabbit graphical image
+		BufferedImage rabbitImg;
+		try {
+			rabbitImg = ImageIO.read(new File("img/rabbit.png"));
+		} catch (IOException e) {
+			rabbitImg = null;
+		}
+		RabbitsGrassSimulationAgent.setRabbitImg(rabbitImg);
 	}
 	
 	/**

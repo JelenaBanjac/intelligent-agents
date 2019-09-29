@@ -1,10 +1,5 @@
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
@@ -32,7 +27,9 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private static int IDNumber = 0;
 	private int ID;
 	private RabbitsGrassSimulationSpace rgsSpace;
-	
+	// Rabbit icon
+	private static BufferedImage rabbitIcon;
+
 	/**
 	 * Constructor that takes the initial energy of the agent
 	 * @param energyInit Initial rabbit energy
@@ -150,15 +147,12 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	 */
 	public void draw(SimGraphics G) {
 		if (energy > 0) {
-			BufferedImage img = null;
-			try {
-			    img = ImageIO.read(new File("img/rabbit.png"));
-			    G.drawImageToFit(img);
-			} catch (IOException e) {
+			if (rabbitIcon != null) {
+				G.drawImageToFit(rabbitIcon);
+			} else {
 				G.drawFastRoundRect(Color.blue);
 			}
 		}
-
 	}
 	
 	/**
@@ -202,5 +196,11 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		return rgsSpace.moveRabbitAt(x, y, newX, newY);
 	}
 
-
+	/**
+	 * Set the visual representation of the agents.
+	 * @param img the graphical image that represents the agent
+	 */
+	public static void setRabbitImg(BufferedImage img) {
+		rabbitIcon = img;
+	}
 }
