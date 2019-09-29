@@ -16,7 +16,7 @@ public class RabbitsGrassSimulationSpace {
 	// Rabbits in Space
 	private Object2DGrid rabbitSpace;
 	
-	// Max number of Grass in Space
+	// Total amount of grass being grown at each simulation step
 	public static final int MAX_GRASS = 50;
 	
 	/**
@@ -49,7 +49,7 @@ public class RabbitsGrassSimulationSpace {
 			int y = (int)(Math.random()*(grassSpace.getSizeY()));
 		
 			// Get the value of the object at those coordinates
-			int currentValue = Math.min(getGrassAt(x, y), MAX_GRASS - 1); // getGrassAt(x, y);
+			int currentValue = getGrassAt(x, y);  // Math.min(getGrassAt(x, y), MAX_GRASS - 1); // 
 			// Replace the Integer object with another one with the new value
 			grassSpace.putObjectAt(x, y, new Integer(currentValue + 1));
 		}
