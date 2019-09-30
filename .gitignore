@@ -1,8 +1,6 @@
 # Created by https://www.gitignore.io/api/java,eclipse
 # Edit at https://www.gitignore.io/?templates=java,eclipse
 
-# Exercise 1
-rabbits/banjac-triantafyllou-in.jar
 
 ### Eclipse ###
 .metadata
@@ -109,4 +107,7 @@ hs_err_pid*
 !jsolver.jar
 !logist.jar
 !repast.jar
+
+# Exercise 1
+!rabbits/banjac-triantafyllou-in.jar
 
