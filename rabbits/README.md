@@ -78,11 +78,11 @@ Deliverable (Due on Tuesday 01.10.2019 at 23:55):
 - [ ] implement birth threshold, when rabbit reaches certain energy level it reproduces; makes one new rabbit; it cannot reproduce twice in one thick since reproduction takes some energy too (CHECK: what amount?)
 - [x] implement the death of the agent, when energy is 0
 - [x] grass grows with every tick, total amount with every thick is initialized; CHECK: total 50 or added 50? It has to be possible to fully control the total amount of grass being grown at each simulation step.
-- [ ] check that all setters/getters are there 
-- [ ] write down the assuptions for the model we concluded are the best
-- [ ] model can be used to explore the competitive advantages of these variables we have
-- [ ] create population plot to observe the evolution of the rabbits and the grass. CHECK: is that the plot with two different color lines that are changing with every simulation tick?
-- [ ] check if ```java -jar *.jar "" false``` command works fine
-- [ ] write down java docs for every method implemented
-- [ ] make sure Instructions and Delivarable sections are correctly completed in the end
+- [x] check that all setters/getters are there 
+- [x] write down the assuptions for the model we concluded are the best
+- [x] model can be used to explore the competitive advantages of these variables we have
+- [x] create population plot to observe the evolution of the rabbits and the grass. CHECK: is that the plot with two different color lines that are changing with every simulation tick?
+- [x] check if ```java -jar *.jar "" false``` command works fine
+- [x] write down java docs for every method implemented
+- [x] make sure Instructions and Delivarable sections are correctly completed in the end
 
