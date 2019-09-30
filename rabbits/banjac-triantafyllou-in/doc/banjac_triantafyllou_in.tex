@@ -1,0 +1,149 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage[top=0.8in, bottom=0.8in, left=0.8in, right=0.8in]{geometry}
+% Add other packages here %
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+
+
+% Put your group number and names in the author field %
+\title{\bf Exercise 1.\\ Implementing a first Application in RePast: A Rabbits Grass Simulation.}
+\author{Group \textnumero 70: Jelena Banjac, Stratos Triantafyllou}
+
+\begin{document}
+\maketitle
+
+\section{Implementation}
+
+This project explores a simple ecosystem made up of rabbits and grass. The rabbits wander around randomly, and the grass grows randomly. When a rabbit bumps into some grass, it eats the grass and gains energy. If the rabbit gains enough energy, it reproduces. If it runs out of energy, it dies.
+
+The grass can be adjusted to grow at different rates and give the rabbits differing amounts of energy. In addition, the reproduction of the rabbits can be adjusted to have different birth thresholds of energy. The model can be used to explore the competitive advantages of these variables, which we will do in this report.
+
+The code contains JavaDocs. Therefore, all following assumptions and implementation remarks can be found in the corresponding parts of the code.
+
+
+\begin{multicols}{2}
+Variables we can change are:
+\begin{itemize}
+\item \textbf{BirthThreshold} - The amount of energy that a rabbit must reach before reproducing.
+\item \textbf{GrassGrowthRate} - The amount of grass that grows at each simulation step.
+\item \textbf{GridSize} - The size of the simulation world.
+\item \textbf{NumInitGrass} - Number of initial grass cells.
+\item \textbf{NumInitRabbits} - Number of initial rabbits.
+\item \textbf{RabbitEnergyInit} - Initial energy of a rabbit.
+\end{itemize}
+
+\includegraphics[scale=0.25]{grid.png}
+
+\end{multicols}
+
+
+\subsection{Assumptions}
+% Describe the assumptions of your world model and implementation (e.g. is the grass amount bounded in each cell) %
+The assumptions of our world model and implementation:
+\begin{itemize}
+\item The rabbits do not communicate with each other.
+\item A rabbit loses 1 point of energy as it moves to the neighbouring cell.
+\item A rabbit can stay in the same cell, but it will still lose the 1 point of the energy.
+\item 1 unit of grass corresponds to 1 point of energy.
+\item On the first tick of the simulation, it can happen that rabbit already has a grass in his cell.
+\item When rabbit reproduces, it loses the amount of energy that is specified as initial rabbit energy, that way they cannot reproduce twice during one simulation step.
+\item The rabbit does not have parents (i.e. the new rabbit is created from one rabbit only).
+\item A newborn rabbit has the same initial energy the same as all rabbits in the beginning of the simulation.
+\item We introduce new constraint which describes the maximum amount of the grass in one cell. We did it since the plots didn't look very stable otherwise. 
+\end{itemize}
+
+
+\subsection{Implementation Remarks}
+% Provide important details about your implementation, such as handling of boundary conditions %
+Important details of our implementation are:
+\begin{itemize}
+\item Assessing whether an adjacent cell is unoccupied so that a rabbit can move onto it, is done according the rabbit's position in the rabbit list. Say that, at a certain simulation step, rabbit B stands in a cell adjacent to the rabbit A. If rabbit B is before rabbit A in the rabbit list, it will move first and the cell will be made available to rabbit A. Otherwise, rabbit A will not be able to move into the cell. 
+\item Rabbits are represented with a graphical image, otherwise (i.e. image was not found) the rabbit will be represented as a blue rectangle.
+\item The strength of grass color represents the quantity of energy it gives (i.e. the darker the color, the higher is the amount of energy the rabbit will receive).
+\item Sliders are implemented for all the parameters that are in our interest of testing their influence on the population.
+\end{itemize}
+
+
+\section{Results}
+% In this section, you study and describe how different variables (e.g. birth threshold, grass growth rate etc.) or combinations of variables influence the results. Different experiments with diffrent settings are described below with your observations and analysis
+It is understandable that the simulation model used in this assignment far from depicts a real-world ecosystem, as mirrored in the assumptions that define it. For instance, a rabbit is considered blind and randomly moving, which means that it might move into a bare cell even thought it might be next to a cell that does contain grass. These assumptions are important in interpreting the results of the following experiments, which, by real-world standards, might look strange.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Scenario 1: Equilibrium}
+Most possible parameterizations would result to an equilibrium state; there would be a point in time after which both the amount of grass and the number of rabbits would remain relatively stable. This is mainly related to the grass growth rate, which can be associated with a certain number of surviving rabbits. For example, we can set the growth rate for grass to 200, and number of rabbits at 50.
+
+\begin{multicols}{2}
+\subsubsection{Setting}
+\textbf{BirthThreshold} = 19 \newline
+\textbf{GrassGrowthRate} = 200 \newline
+\textbf{GridSize} = 20 \newline
+\newline
+\textbf{NumInitGrass} = 1000 \newline
+\textbf{NumInitRabbits} = 50  \newline
+\textbf{RabbitEnergyInit} = 10 \newline
+\end{multicols}
+
+\begin{multicols}{2}
+\subsubsection{Observations}
+% Elaborate on the observed results %
+
+
+The result of the simulation demonstrates how a growth rate of 200 is able to sustain the rabbit population at approximately 50. Subsequent runs for other values of the initial grass present on the world show that this equilibrium state for the rabbit population is achievable even if we start the simulation with much less grass present.
+
+\includegraphics[scale=0.12]{run2_equilibrium.png}
+\captionof{figure}{Amount of grass and number of rabbits in the scenario 1}
+
+
+\end{multicols}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Scenario 2: Equilibrium, a cyclical perspective}
+Having a large number of rabbits in the simulation world creates competition for the available grass. What if that competition did not exist from the beginning? In this scenario, we start the simulation with a single rabbit.
+
+\begin{multicols}{2}
+
+\subsubsection{Setting}
+\textbf{BirthThreshold} = 19 \newline
+\textbf{GrassGrowthRate} = 25 \newline
+\textbf{GridSize} = 20 \newline
+\textbf{NumInitGrass} = 150 \newline
+\textbf{NumInitRabbits} = 1  \newline
+\textbf{RabbitEnergyInit} = 10 \newline
+
+\subsubsection{Observations}
+% Elaborate on the observed results %
+\includegraphics[scale=0.12]{exp3_updown.png}
+\captionof{figure}{Amount of grass and number of rabbits in the scenario 2}
+
+\end{multicols}
+
+At a grass growth rate of 25, we observe some kind of cyclical pattern. The rabbit population starts at 1, therefore the amount of grass rises quickly. However, when there is enough grass available, the rabbit reproduces. As the population of rabbits rises to 4, the amount of grass grows less, until the available cannot sustain the population. After a while, we are back at 1, and the cycle starts all over. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Scenario 3: Overpopulation}
+Another experimental attempt would be to test what happens when resources grow too slowly to be able to sustain the population. We opt for a minimum grass growth rate of 1, and a relatively large number of rabbits at 150. To make sure the simulation is not influenced by lack of initial grass, we set it to 1000.
+
+\begin{multicols}{2}
+
+\subsubsection{Setting}
+\textbf{BirthThreshold} = 19 \newline
+\textbf{GrassGrowthRate} = 1 \newline
+\textbf{GridSize} = 20 \newline
+\textbf{NumInitGrass} = 1000 \newline
+\textbf{NumInitRabbits} = 150  \newline
+\textbf{RabbitEnergyInit} = 10 \newline
+
+\subsubsection{Observations}
+% Elaborate on the observed results %
+\includegraphics[scale=0.12]{run1_rabbits_extinct.png}
+\captionof{figure}{Amount of grass and number of rabbits in the scenario 3}
+
+\end{multicols}
+
+We can see that the number of rabbits drops significantly from the beginning, since the rabbits consume a large proportion of the grass, which does not grow back in time to sustain the population. Rabbits eventually go extinct and grass starts growing indefinitely, since it is not consumed.
+
+\end{document}
