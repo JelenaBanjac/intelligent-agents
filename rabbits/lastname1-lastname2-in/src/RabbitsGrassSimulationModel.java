@@ -141,7 +141,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		// Sliders in Parameters Tab
 		addRangePropertyDescriptor("GridSize", 0, 100, 20);
 		addRangePropertyDescriptor("NumInitRabbits", 0, 400, 100);
-		addRangePropertyDescriptor("NumInitGrass", 0, 400, 100);
+		addRangePropertyDescriptor("NumInitGrass", 0, 1000, 200);
 		addRangePropertyDescriptor("BirthThreshold", 0, 1000, 200);
 		addRangePropertyDescriptor("GrassGrowthRate", 0, 1000, 200);
 		addRangePropertyDescriptor("RabbitEnergyInit", 0, 50, 10);
@@ -204,7 +204,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 				for (int i = 0; i < rabbitsList.size(); i++) {
 					RabbitsGrassSimulationAgent rgsa = (RabbitsGrassSimulationAgent) rabbitsList.get(i);
 					// Report with every step as well
-					rgsa.report();
+					//rgsa.report();
 					// Make a step in the simulation
 					rgsa.step();
 				}
@@ -225,6 +225,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		class RabbitGrassSimulationCountLiving extends BasicAction {
 			public void execute() {
 				countLivingRabbits();
+				System.out.println("Number of total grass: " + rgsSpace.getTotalGrass());
 			}
 		}
 		schedule.scheduleActionAtInterval(5.0, new RabbitGrassSimulationCountLiving());

@@ -171,7 +171,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	    	// Every step of schedule, rabbit eats the grass if there is any
 			energy += rgsSpace.eatGrassAt(x, y);
 			// TODO: check
-			//rgsSpace.takeGrassAt(x, y);
+			//rgsSpace.eatGrassAt(x, y);
 	    }
 	    else
 	    {
