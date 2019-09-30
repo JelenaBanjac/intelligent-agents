@@ -55,7 +55,8 @@ java -jar ***.jar "" false
 8.	Make sure that you fulfill the requirements for the solution given in the exercise description.
 9.	Write documentation using the latex template and place it into the doc folder. The pdf should be named lastname1-lastname2-in.pdf.
 10.	Create a runnable jar file and place it in the folder lastname1-lastname2-in.
-11.	Zip the folder lastname1-lastname2-in (without the libraries) and submit it on moodle.
+11. Package required libraries in the package.
+12.	Zip the folder lastname1-lastname2-in (without the libraries) and submit it on moodle.
 
 ## Delivarable
 
