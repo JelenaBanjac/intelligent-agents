@@ -177,6 +177,20 @@ There is a seperate document that elaborates the relevant parts of the LogistPla
 - The task distribution can be given a seed in order to make the task generation deterministic. This is invaluable when doing code debugging, but please test your program with other seeds, too. If your program has just crashed look at the `history.xml` file - it contains a detailed history of events. If you reuse the seed values provided there (by changing the configuration file) you should be able to repeat the crash.
 - The graph that you see when running the logist platform gives the reward per kilometer after each action and this is **NOT** a function that you need to optimize, RLA optimizes another function.
 
+## Run Simulation
+For 1 agent (called reactive-random):
+
+```
+java -jar lib/logist.jar config/reactive.xml reactive-random
+```
+
+For 3 agents (all called the same, reactive-random):
+```
+java -jar lib/logist.jar config/reactive.xml reactive-random reactive-random reactive-random
+```
+Dummy example:
+![PDP](img/pdp.gif)
+
 ## Instructions
 1.  Download the skeleton files for the reactive exercise
 2.  Import the project in Eclipse (or another IDE, for example Netbeans).
@@ -198,3 +212,5 @@ _The report should be based on a latex template that is given on the exercise de
 - rename the reactive folder to _lastname1-lastname2-ex2_
 - create a directory called doc within this folder and place the report in this folder
 - create a zipfile _lastname1-lastname2-ex2.zip_ containing everything in the _lastname1-lastname2-ex2_ folder.
+
+

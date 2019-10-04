@@ -44,6 +44,9 @@ Before you submit your final version, please make sure that your runnable jar fi
 java -jar ***.jar "" false
 ```
 
+Example:
+![Rabbits](img/rabbits.gif)
+
 ## Instructions
 1.	Rename the folder lastname1-lastname2-in.
 2.	Import the project in Eclipse (or another IDE, for example Netbeans).
