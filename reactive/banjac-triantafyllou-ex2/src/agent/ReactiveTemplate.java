@@ -1,4 +1,4 @@
-package template;
+package agent;
 
 import java.util.Random;
 
