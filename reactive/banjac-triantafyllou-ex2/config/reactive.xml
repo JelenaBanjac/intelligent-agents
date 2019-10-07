@@ -7,7 +7,7 @@
 	<settings import="config/settings_default.xml" />	
 	
 	<!-- load the topology-->
-	<topology import="config/topology/france.xml" />
+	<topology import="config/topology/switzerland.xml" />
 	
 	<!-- load agents -->
 	<agents import="config/agents.xml" />
@@ -31,9 +31,9 @@
 	<companies>
 		<company name="Company A">
 			<!-- the first vehicle (blue) -->
-			<vehicle name="Vehicle 1">
+			<vehicle name="Reactive RLA (0.99)">
 				<set color="#0000ff" />
-				<set home="Paris" />
+				<set home="Lausanne" />
 				<set speed="220" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -42,9 +42,9 @@
 		
 		<company name="Company B">
 			<!-- the second vehicle (red) -->
-			<vehicle name="Vehicle 2">
+			<vehicle name="Reactive RLA (0.95)">
 				<set color="#ff0000" />
-				<set home="Lyon" />
+				<set home="Bern" />
 				<set speed="220" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -53,9 +53,9 @@
 
 		<company name="Company C">
 			<!-- the third vehicle (green) -->
-			<vehicle name="Vehicle 3">
+			<vehicle name="Reactive RLA (0.85)">
 				<set color="#00ff00" />
-				<set home="Brest" />
+				<set home="Lausanne" />
 				<set speed="220" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -64,9 +64,9 @@
 
 		<company name="Company D">
 			<!-- the fourth vehicle (yellow) -->
-			<vehicle name="Vehicle 4">
+			<vehicle name="Reactive RLA (0.5)">
 				<set color="#ffff00" />
-				<set home="Monaco" />
+				<set home="Bern" />
 				<set speed="220" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
@@ -75,9 +75,9 @@
 		
 		<company name="Company E">
 			<!-- the fifth vehicle (magenta) -->
-			<vehicle name="Vehicle 5">
+			<vehicle name="Reactive RLA (0.15)">
 				<set color="#ff00ff" />
-				<set home="Strasbourg" />
+				<set home="Lausanne" />
 				<set speed="220" />
 				<set capacity="80" />
 				<set cost-per-km="5" />
@@ -86,9 +86,9 @@
 		
 		<company name="Company F">
 			<!-- the sixth vehicle (cyan) -->
-			<vehicle name="Vehicle 6">
+			<vehicle name="Reactive Random">
 				<set color="#00ffff" />
-				<set home="Bordeaux" />
+				<set home="Genève" />
 				<set speed="220" />
 				<set capacity="80" />
 				<set cost-per-km="5" />
@@ -98,3 +98,4 @@
 	</companies>
 	
 </configuration>
+

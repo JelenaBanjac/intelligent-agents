@@ -45,7 +45,7 @@ public class RouteState {
 		return "RouteState [id=" + id + ", fromCity=" + fromCity + ", toCity=" + toCity + "]";
 	}
 	
-	public boolean hasToCity() {
+	public boolean hasTask() {
 		return toCity != null;
 	}
 

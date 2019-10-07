@@ -1,7 +1,7 @@
 package agent;
 
 import java.util.HashMap;
-import java.util.Random;
+import java.util.Map;
 
 import action.RouteAction;
 import logist.simulation.Vehicle;
@@ -13,17 +13,13 @@ import logist.plan.Action.Pickup;
 import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
-import logist.topology.Topology.City;
 import state.RouteState;
-import tables.Table;
-import tables.TableProbability;
+import tables.ActionValue;
 import tables.Tables;
 
 
 public class Reactive implements ReactiveBehavior {
 
-	private Random random;
-	private double pPickup;
 	private int numActions;
 	private Agent myAgent;
 	private Topology topology;
@@ -31,12 +27,10 @@ public class Reactive implements ReactiveBehavior {
 	private Double discount;
 	private Double epsilon;
 	
-	private Table<RouteState, RouteAction, Double> Q; 
-	private Table<RouteState, RouteAction, Double> V; 
-	private Table<RouteState, RouteAction, Double> V0; 
-	private Table<RouteState, RouteAction, Double> R; 
-	private TableProbability<RouteState, RouteAction, RouteState, Double> T;
-	
+	private Map<RouteState, HashMap<RouteAction, Double>> Q;
+	private HashMap<RouteState, ActionValue<RouteAction>> V;
+	private Map<RouteState, HashMap<RouteAction, Double>> R;
+
 	/**
 	 * The setup method is called exactly once, before the simulation starts and
 	 * before any other method is called. The agent argument can be used to
@@ -54,10 +48,7 @@ public class Reactive implements ReactiveBehavior {
 		this.discount = agent.readProperty("discount-factor", 
 									  	   Double.class,
 									  	   0.95);
-		this.epsilon = 0.01;
-		
-		this.random = new Random();
-		this.pPickup = discount;
+		this.epsilon = 0.001;
 		this.numActions = 0;
 		this.myAgent = agent;
 		
@@ -73,12 +64,23 @@ public class Reactive implements ReactiveBehavior {
 
 		this.R = Tables.initializeR(this.myAgent, this.td);
 
-		this.T = Tables.initializeT(this.td);
+		System.out.println("Start RLA...");
+		rla();
 		
-		System.out.println("Do RLA algorithm...");
-		offlineReinforcementLearning();
+		printV();
+	}
+	
+	private void printV() {
+		System.out.println("V vector:");
+		for (RouteState state : V.keySet()) {
+			ActionValue<RouteAction> vdata = V.get(state);
+			System.out.println(state + " -> " + vdata.action + " (" + vdata.value + ")");
+		}
 	}
 
+	private RouteAction Best(RouteState state) {
+		return V.get(state).action;
+	}
 	
 	/**
 	 * This method is called every time the agent arrives in a new city and is not
@@ -108,14 +110,19 @@ public class Reactive implements ReactiveBehavior {
 		
 		Action action;
 
-		if (availableTask == null || random.nextDouble() > pPickup) {
-			City currentCity = vehicle.getCurrentCity();
-			action = new Move(currentCity.randomNeighbor(random));
-			System.out.println("Leave the task and MOVE to neighbor city");
-		} else {
-			// platform takes over the vehicle and delivers task in shortest path
+		RouteState state = RouteState.find(vehicle.getCurrentCity(), availableTask == null ? null : availableTask.deliveryCity);
+		System.out.println("State: " + state);
+		
+		RouteAction bestAction = Best(state);
+		System.out.println("Best action: " + bestAction);
+		
+		System.out.println(state.hasTask()? "has task": "no task");
+		
+		if (state.hasTask()) {
 			action = new Pickup(availableTask);
-			System.out.println("PICKUP the task");
+		} else {
+			
+			action = new Move(bestAction.getNeighborCity());
 		}
 		
 		if (numActions >= 1) {
@@ -128,52 +135,72 @@ public class Reactive implements ReactiveBehavior {
 		return action;
 	}
 	
-	public void offlineReinforcementLearning() {
+	public void rla() {
+		int iter = 0;
 		
 		while (true) {
-			V0 = V; 
-			for (RouteState state : RouteState.getStates()) {
-				for (RouteAction action : RouteAction.getActions()) {
-					double value = R.getValue(state, action) + discountedSum(state, action);
-					Q.put(state, action, value);
+			iter++;
+			
+			HashMap<RouteState, ActionValue<RouteAction>> V0 = new HashMap<RouteState, ActionValue<RouteAction>> (V);
+
+			for (RouteState state : Q.keySet()) {
+				for (RouteAction action : Q.get(state).keySet()) {			
+					double value = R.get(state).get(action) + discountedSum(state, action);
+					Q.get(state).put(action, value);
 				}
-				RouteAction bestAction = Q.getValues(state).entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
-				Double bestValue = Q.getValues(state).get(bestAction);
-				
-				V.put(state, bestAction, bestValue);
+				RouteAction bestAction = Q.get(state).entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
+				Double bestValue = Q.get(state).get(bestAction);
+				ActionValue<RouteAction> av = new ActionValue<RouteAction>(bestAction, bestValue);
+
+				V.put(state, av);
 			}
+			
 			if (goodEnough(V0, V)) break;
 		}
+		System.out.println("Number of iterations: " + iter);
 	}
+
 	
 	public double discountedSum(RouteState state, RouteAction action) {
-		
 		double sum = 0.0;
 		for (RouteState state0 : RouteState.getStates()) {
-			sum += T.getProbability(state, action, state0) * V.getValue(state0);
+			sum += transition(state, action, state0);
 		}
-		sum *= discount;
+		sum = discount * sum;
 		return sum;
 	}
 	
-	public HashMap<RouteAction, Double> maxQ(HashMap<RouteAction, Double> actionValues) {
-		RouteAction action = actionValues.entrySet().stream().max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getKey();
-		Double value = actionValues.get(action);
+	public double transition(RouteState state, RouteAction action, RouteState state0) {
+		double probability = 0.0;
 		
-		HashMap<RouteAction, Double> bestActionValue = new HashMap<RouteAction, Double>();
-		bestActionValue.put(action, value);
-		return bestActionValue;
+		if (state.getFromCity()==state.getToCity() ||       //
+				state.getFromCity()==state0.getFromCity() ||
+				state0.getFromCity()==action.getNeighborCity() || //-
+				state0.getToCity()!=action.getNeighborCity()||    //-
+				state0.getFromCity()==state0.getToCity() ||     //
+				state.getToCity() != state0.getFromCity()) {
+				probability = 0.0;
+		} else {
+			if (state0.hasTask()) {
+				probability = td.probability(state0.getFromCity(), state0.getToCity());  // delivery
+			} else {
+				probability = 1.0/topology.cities().size();
+			}
+		}
+		
+		return probability;
 	}
 	
-	public boolean goodEnough(Table<RouteState, RouteAction, Double> v0, Table<RouteState, RouteAction, Double> v) {
+	
+	public boolean goodEnough(HashMap<RouteState, ActionValue<RouteAction>> v0, HashMap<RouteState, ActionValue<RouteAction>> v) {
 		double maxDiff = 0.0;
-		for (RouteState state : v0.getKeys()) {
-			double diff = Math.abs(v0.getValue(state) - v.getValue(state));
+		for (RouteState state : v0.keySet()) {
+			double diff = Math.abs(v0.get(state).value - v.get(state).value);
 			if (diff > maxDiff) {
 				maxDiff = diff;
 			}
 		}
 		
-		return maxDiff < 2*epsilon*discount/(1-discount);
+		return maxDiff < epsilon; //2*epsilon*discount/(1-discount);
 	}
 }
