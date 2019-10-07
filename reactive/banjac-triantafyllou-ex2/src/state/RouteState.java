@@ -19,6 +19,14 @@ public class RouteState {
 		toCity = tc;
 	}
 
+	/**
+	 * In our interpretation of the world we use routes as states.
+	 * Number of states is N^2, where N is the number of cities in the topology. 
+	 * 
+	 * ~N^2
+	 * 
+	 * @param cities
+	 */
 	public static void initializeStates(List<City> cities) {
 		// N^2 states
 		for (City fromCity : cities) {

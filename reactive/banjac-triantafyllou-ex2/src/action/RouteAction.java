@@ -2,33 +2,33 @@ package action;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import logist.topology.Topology.City;
-import state.RouteState;
+
 
 public class RouteAction {
 
-//	public enum RouteActionType { 
-//		REFUSE_AND_MOVE, 	 // we need to handle where the agent moves when it refused the task
-//		PICKUP_AND_DELIVER   // platform handles the moving of agent in this case, it moves the shortest path, so we don't know the `toCity`
-//	} 
-	
 	private City neighborCity;
 	private static ArrayList<RouteAction> actions = new ArrayList<RouteAction>();
-	
-	
+		
 	public RouteAction(City neighborCity) {
 		this.neighborCity = neighborCity;
 	}
 	
+	/**
+	 * Number of actions in our implementation is N, where N stands for the number of
+	 * cities in the topology. We don't have city null. In any state, the agent can have the action
+	 * that says which city it visits next.
+	 * 
+	 * ~N actions
+	 * 
+	 * @param cities
+	 */
 	public static void initializeActions(List<City> cities) {
-		// ~N actions for each city
 		for (City city : cities) {
 			for (City neighborCity : city.neighbors()) {
 				RouteAction.actions.add(new RouteAction(neighborCity));
 			}
 		}
-//		RouteAction.actions.add(new RouteAction(null));
 	}
 
 	@Override
