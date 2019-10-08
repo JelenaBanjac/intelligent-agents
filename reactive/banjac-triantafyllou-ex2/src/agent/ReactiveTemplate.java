@@ -1,5 +1,7 @@
 package agent;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 
 import logist.simulation.Vehicle;
@@ -89,6 +91,31 @@ public class ReactiveTemplate implements ReactiveBehavior {
 							   " actions is " + myAgent.getTotalProfit()+
 							   " (average profit: " + (myAgent.getTotalProfit() / (double)numActions)+")");
 		}
+		
+		// Write to CSV file for evaluation of the performance
+		FileWriter csvWriter = null;
+		try {
+			//File csvFile = new File("data/performance.csv");
+			csvWriter = new FileWriter("data/switzerland-ex2/performance1.csv", true);
+			csvWriter.append(myAgent.name()+";"+
+							numActions+";"+
+							myAgent.getTotalProfit()+";"+
+							(myAgent.getTotalProfit() / (double)numActions)+ ";"+
+							(myAgent.getTotalReward() / (double)myAgent.getTotalDistance())+"\n");
+			csvWriter.flush();
+			csvWriter.close();
+		} catch (IOException e) {
+			try {
+				csvWriter.flush();
+				csvWriter.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			e.printStackTrace();
+		}
+				
 		numActions++;
 		
 		return action;

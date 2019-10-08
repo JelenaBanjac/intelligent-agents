@@ -1,5 +1,8 @@
 package agent;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -117,6 +120,31 @@ public class Reactive implements ReactiveBehavior {
 							   " actions is " + myAgent.getTotalProfit()+
 							   " (average profit: " + (myAgent.getTotalProfit() / (double)numActions)+")");
 		}
+		
+		// Write to CSV file for evaluation of the performance
+		FileWriter csvWriter = null;
+		try {
+			//File csvFile = new File("data/performance.csv");
+			csvWriter = new FileWriter("data/switzerland-ex1/performance3.csv", true);
+			csvWriter.append(myAgent.name()+";"+
+							numActions+";"+
+							myAgent.getTotalProfit()+";"+
+							(myAgent.getTotalProfit() / (double)numActions)+ ";"+
+							(myAgent.getTotalReward() / (double)myAgent.getTotalDistance())+"\n");
+			csvWriter.flush();
+			csvWriter.close();
+		} catch (IOException e) {
+			try {
+				csvWriter.flush();
+				csvWriter.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			e.printStackTrace();
+		}
+		
 		numActions++;
 		
 		return action;

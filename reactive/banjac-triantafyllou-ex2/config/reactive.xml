@@ -86,7 +86,7 @@
 		
 		<company name="Company F">
 			<!-- the sixth vehicle (cyan) -->
-			<vehicle name="Reactive Random">
+			<vehicle name="Reactive RLA (0.0)">
 				<set color="#00ffff" />
 				<set home="Genève" />
 				<set speed="220" />
@@ -98,4 +98,5 @@
 	</companies>
 	
 </configuration>
+
 

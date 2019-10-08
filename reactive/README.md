@@ -144,7 +144,7 @@ In this exercise, we must implement the offline reinforcement learning algorithm
     - the **probability of the transition** and
     - the **reward of the transition**.
 
-Remember that a reactive agent chooses an action depending **only** on its perceived state of the world. So, be very careful and test wer representation on paper before we start programming !
+Remember that a reactive agent chooses an action depending **only** on its perceived state of the world. So, be very careful and test an representation on paper before we start programming !
 
 Furthermore, we need to define:
 - `Best(S)`: vector indicating the best action from a state 
@@ -169,13 +169,13 @@ At each iteration, update `Q(s, a)` and `V(S)`. The algorithm stops whenever the
     - reward table `R(s, a)` 
     - probability transition table `T(s, a, s0)` - this is the hardest and most crucial part of the exercise.
 - [ ] Implement the offline reinforcement learning algorithm for determining the actions to take in order to search and deliver tasks optimally. This algorithm should be executed before the vehicles start moving.
-- [ ] Run simulations of one, two and three agents using wer optimally learned strategy `V(S)`. Look at the performance graph of the agents. How does it change for different discount factors? Explain wer results. Test limit cases.
+- [ ] Run simulations of one, two and three agents using an optimally learned strategy `V(S)`. Look at the performance graph of the agents. How does it change for different discount factors? Explain an results. Test limit cases.
 
 ## Hints
 There is a seperate document that elaborates the relevant parts of the LogistPlatform for this exercise.
 - Do note that there is a continuous supply of tasks and that the simulation will run forever. Use the exit button from the Repast UI to shutdown the platform cleanly.
-- The prepared package comes with various configuration files that allow we to test wer solution. Feel free to change them and see how it affects wer program. When we hand-in wer solution please make sure that we correctly set wer discount factor and any other user-defined values (if we use them).
-- The task distribution can be given a seed in order to make the task generation deterministic. This is invaluable when doing code debugging, but please test wer program with other seeds, too. If wer program has just crashed look at the `history.xml` file - it contains a detailed history of events. If we reuse the seed values provided there (by changing the configuration file) we should be able to repeat the crash.
+- The prepared package comes with various configuration files that allow we to test the solution. Feel free to change them and see how it affects the program. When we hand-in the solution please make sure that we correctly set the discount factor and any other user-defined values (if we use them).
+- The task distribution can be given a seed in order to make the task generation deterministic. This is invaluable when doing code debugging, but please test the program with other seeds, too. If the program has just crashed look at the `history.xml` file - it contains a detailed history of events. If we reuse the seed values provided there (by changing the configuration file) we should be able to repeat the crash.
 - The graph that we see when running the logist platform gives the reward per kilometer after each action and this is **NOT** a function that we need to optimize, RLA optimizes another function.
 
 ## Run Simulation
@@ -198,18 +198,18 @@ Dummy example:
 3.  Reference the library logist and the other libraries that we downloaded from the moodle page for this exercise
 4.  Link the javadoc for the logist library
 5.  Read carefully the documentation for logist - there we can find instructions how to execute the platform
-6.  Write wer agent
-7.  The name of wer agent (in agents.xml) that represents wer final solution should be reactive-rla
+6.  Write an agent
+7.  The name of the agent (in agents.xml) that represents an final solution should be reactive-rla
 8.  Make sure that we fulfill the requirements for the solution given in the exercise description
-9.  Perform some simulations and analyze the performance of wer reactive agent according to the instructions given in the latex template for the report
+9.  Perform some simulations and analyze the performance of an reactive agent according to the instructions given in the latex template for the report
 10.	Create a folder named &quot;doc&quot; in the project
 11. Write documentation using the latex template and place it into a doc folder that we created. The pdf should be named lastname1-lastname2-ex2.pdf. The report should not be longer than 3 pages.
 12.	Zip the folder lastname1-lastname2-ex2 (without the libraries) and submit it on moodle
 
 ## Deliverables (Due on Tuesday 08.10.2019, 23:55) :
-- A report in PDF describing wer state representation, wer code and the results obtained with wer solution.
+- A report in PDF describing an state representation, where code and the results obtained with an solution.
 _The report should be based on a latex template that is given on the exercise description moodle page._
-- the name of wer agent (in `agents.xml`) that represents wer final solution should be `reactive-rla`
+- the name of an agent (in `agents.xml`) that represents an final solution should be `reactive-rla`
 - rename the reactive folder to _lastname1-lastname2-ex2_
 - create a directory called doc within this folder and place the report in this folder
 - create a zipfile _lastname1-lastname2-ex2.zip_ containing everything in the _lastname1-lastname2-ex2_ folder.
