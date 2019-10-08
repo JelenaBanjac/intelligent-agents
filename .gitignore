@@ -111,3 +111,5 @@ hs_err_pid*
 # Exercise 1
 !rabbits/banjac-triantafyllou-in/banjac-triantafyllou-in.jar
 !rabbits/banjac-triantafyllou-in.zip
+!reactive/banjac-triantafyllou-ex2.zip
+
