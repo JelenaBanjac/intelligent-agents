@@ -191,7 +191,12 @@ java -jar lib/logist.jar config/reactive.xml reactive-random reactive-random rea
 ```
 
 Our implementation (with the configuration that is currently in the repo):
+```
+ava -jar lib/logist.jar config/reactive.xml reactive-rla-99 reactive-rla-95 reactive-rla reactive-rla-50 reactive-rla-15 reactive-random
+```
 ![Our implementation](img/our_implementation.gif)
+
+Note: the inicial parameters can affect the results. Also, there can be a better implementation which gives a bigger difference between the performace of a true reactive agent and random one.
 
 ## Instructions
 1.  Download the skeleton files for the reactive exercise
