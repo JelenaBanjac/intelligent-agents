@@ -189,8 +189,9 @@ For 3 agents (all called the same, reactive-random):
 ```
 java -jar lib/logist.jar config/reactive.xml reactive-random reactive-random reactive-random
 ```
-Dummy example:
-![PDP](img/pdp.gif)
+
+Our implementation (with the configuration that is currently in the repo):
+![Our implementation](img/our_implementation.gif)
 
 ## Instructions
 1.  Download the skeleton files for the reactive exercise

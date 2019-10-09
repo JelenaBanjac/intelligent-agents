@@ -125,7 +125,7 @@ public class Reactive implements ReactiveBehavior {
 		FileWriter csvWriter = null;
 		try {
 			//File csvFile = new File("data/performance.csv");
-			csvWriter = new FileWriter("data/switzerland-ex1/performance3.csv", true);
+			csvWriter = new FileWriter("data/switzerland/performance_new.csv", true);
 			csvWriter.append(myAgent.name()+";"+
 							numActions+";"+
 							myAgent.getTotalProfit()+";"+
