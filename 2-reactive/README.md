@@ -8,7 +8,7 @@
 ## Documentation
 Overleaf link [here](https://www.overleaf.com/1615262219smrybvqdjzrs).
 
-## A Reactive Agent for the Pickup and Delivery Problem
+## A **Reactive Agent** for the Pickup and Delivery Problem
 In this exercise, we will learn to use a reactive agent to solve the **Pickup and Delivery Problem**. For that, we will implement a _reinforcement learning algorithm (RLA)_ to compute an optimal strategy off-line. This strategy is then used by the agent to travel through the network.
 
 
@@ -119,6 +119,8 @@ We make the following assumption about the reactive agent :
 6. The agent receives a reward for each task that it delivers and pays a cost for each kilometer that it travels. Since the agent tries to maximize its profit, it will always deliver a task on the shortest path. Must deliver it, and on the shortest path (given by the platform).
 7. A task which was refused disappears immediately. The next time the agent moves to that city a new task is generated according to the probability distribution. So, there exists a probability distribution of the tasks.
 
+---
+# Implementation
 
 ## Applyting reinforcement learning (Markov Decision Processes) to learn an optimal strategy
 An intelligent reactive agent can improve its performance by learning to optimally respond to the percepts received. Using reinforcement learning the agent can learn to react optimally on the basis of a **probability distribution** of the tasks in the network. This approach assumes that the probability distribution is _known_. The learning phase is done offline before the agent travels through the network.
@@ -135,6 +137,8 @@ At the beginning there are two tables:
 ### Timeline:
 - **Beforehand**: These tables are created from the task set settings in the configuration file and can be accessed through the `TaskDistribution` object that is given during setup. So, tasks `t_ij` have been created with the probability `p_ij` and a variation reward around `r_ij`.
 - **At runtime**: Task from the current city `i` to some other city `j` will be created with probability `p(i, j)` and will have a reward of `r(i, j)`.
+
+
 
 ## Implementing the Reinforcement Learning Algorithm (RLA)
 In this exercise, we must implement the offline reinforcement learning algorithm. The first thing that we need to do (and this is the most difficult part of this exercise) is to define (on paper !) :
@@ -161,6 +165,7 @@ Furthermore, we need to define:
 ![Q-table](img/q_table.png)
 
 At each iteration, update `Q(s, a)` and `V(S)`. The algorithm stops whenever there is no more a change in `V(S)`. When we have learned `V(S)`, the agent can start to move through the topology following the actions indicated in `V(S)`.
+
 
 ## Task
 - [ ] Define:
@@ -197,6 +202,9 @@ ava -jar lib/logist.jar config/reactive.xml reactive-rla-99 reactive-rla-95 reac
 ![Our implementation](img/our_implementation.gif)
 
 Note: the inicial parameters can affect the results. Also, there can be a better implementation which gives a bigger difference between the performace of a true reactive agent and random one.
+
+---
+# Submission
 
 ## Instructions
 1.  Download the skeleton files for the reactive exercise
