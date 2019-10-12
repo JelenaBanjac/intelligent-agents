@@ -26,7 +26,7 @@
 	<agent name="reactive-rla">
 		<set class-path="bin/"/>
 		<set class-name="agent.Reactive"/>
-		<set discount-factor=".85"/>
+		<set discount-factor=".95"/>
 	</agent>
 	
 	<agent name="reactive-rla-50">
