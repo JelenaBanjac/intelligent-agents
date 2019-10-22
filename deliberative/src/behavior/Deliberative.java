@@ -1,7 +1,7 @@
 package behavior;
 
 /* import table */
-import logist.plan.Action;
+//import logist.plan.Action;
 import logist.simulation.Vehicle;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
@@ -12,12 +12,15 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 import state.State;
-
-import java.util.ArrayList;
+import action.Action;
 import java.util.Collections;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * An optimal planner for one vehicle.
@@ -25,7 +28,7 @@ import java.util.Queue;
 @SuppressWarnings("unused")
 public class Deliberative implements DeliberativeBehavior {
 
-    enum Algorithm { BFS, ASTAR }
+    enum Algorithm { BFS, ASTAR, NAIVE }
 
     /* Environment */
     Topology topology;
@@ -66,11 +69,14 @@ public class Deliberative implements DeliberativeBehavior {
             case ASTAR:
                 // ...
             	finalState = ASTAR(initialState);
-                plan = buildPlan(finalState, vehicle.homeCity());
+                plan = buildPlan(finalState, vehicle);
                 break;
             case BFS:
                 finalState = BFS(initialState);
-                plan = buildPlan(finalState, vehicle.homeCity());
+                plan = buildPlan(finalState, vehicle);
+                break;
+            case NAIVE:
+            	plan = naivePlan(vehicle, tasks);
                 break;
             default:
                 throw new AssertionError("Should not happen.");
@@ -201,11 +207,39 @@ public class Deliberative implements DeliberativeBehavior {
     
     
 
-    private Plan buildPlan(State finalState, City startingPoint) {
-        Plan plan = new Plan(startingPoint);
+//    private Plan buildPlan(State finalState, City startingPoint) {
+//        Plan plan = new Plan(startingPoint);
+//
+//        for (Action a : finalState.getActions()) {
+//            plan.append(a);
+//        }
+//
+//        return plan;
+//    }
+	
+	public Plan buildPlan(State state, Vehicle vehicle) {
+    	City current = vehicle.getCurrentCity();
+        Plan plan = new Plan(current);
 
-        for (Action a : finalState.getActions()) {
-            plan.append(a);
+        for (Action action : state.actions) {
+        	City destinationCity;
+        	if (action.type == Action.Type.DELIVER) {
+        		destinationCity = action.task.deliveryCity;
+        	} else {
+        		destinationCity = action.task.pickupCity;
+        	}
+        	
+        	for (City city : current.pathTo(destinationCity)) {
+        		plan.appendMove(city);
+        	}
+        	current = destinationCity;
+        	
+        	if (action.type == Action.Type.DELIVER) {
+        		plan.appendDelivery(action.task);
+        	} else {
+        		plan.appendPickup(action.task);
+        	}
+        	
         }
 
         return plan;

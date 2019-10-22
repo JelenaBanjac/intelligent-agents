@@ -1,15 +1,17 @@
 package state;
 
-import logist.plan.Action;
-import logist.plan.Action.Move;
-import logist.plan.Action.Pickup;
-import logist.plan.Action.Delivery;
+//import logist.plan.Action;
+//import logist.plan.Action.Move;
+//import logist.plan.Action.Pickup;
+//import logist.plan.Action.Delivery;
+import action.Action;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology.City;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class State implements Comparable<State> {
@@ -17,10 +19,10 @@ public class State implements Comparable<State> {
     private City currentLocation;
 
     // Tasks currently being carried (excl. tasks delivered in the city)
-    private List<Task> tasksToDeliver;
+    private TaskSet tasksToDeliver;
 
     // Tasks left to pick up
-    private List<Task> tasksAvailable;
+    private TaskSet tasksAvailable;
 
     // Remaining capacity of the vehicle (after deliveries)
     private int remainingCapacity;
@@ -29,7 +31,7 @@ public class State implements Comparable<State> {
     private double cost;
 
     // Actions to achieve the current state
-    private List<Action> actions;
+    public List<Action> actions;
 
     // Future states
     private List<State> successors;
@@ -37,24 +39,33 @@ public class State implements Comparable<State> {
     // Calculating the heuristic
     private double heuristic = -1;
 
+	public State() {
+		this.tasksToDeliver = null;
+		this.tasksAvailable = null;
+		this.currentLocation = null;
+		this.actions = new ArrayList<Action>();
+		this.cost = 0.0;
+		this.remainingCapacity = 0;
+	}
+    
     public State(Vehicle vehicle, TaskSet tasks, TaskSet carriedTasks) {
         this.currentLocation = vehicle.getCurrentCity();
-        this.tasksToDeliver = new ArrayList<>(carriedTasks);
-        this.tasksAvailable = new ArrayList<>(tasks);
+        this.tasksToDeliver = carriedTasks.clone(); //new ArrayList<>(carriedTasks);
+        this.tasksAvailable = tasks.clone(); //new ArrayList<>(tasks);
         this.remainingCapacity = vehicle.capacity();
         this.cost = 0;
         this.actions = new ArrayList<>();
     }
 
-    public State(City currentLocation, List<Task> tasksToDeliver, List<Task> tasksAvailable, int remainingCapacity,
-                 double cost, List<Action> actions) {
-        this.currentLocation = currentLocation;
-        this.tasksToDeliver = new ArrayList<>(tasksToDeliver);
-        this.tasksAvailable = new ArrayList<>(tasksAvailable);
-        this.remainingCapacity = remainingCapacity;
-        this.cost = cost;
-        this.actions = new ArrayList<>(actions);
-    }
+//    public State(City currentLocation, TaskSet tasksToDeliver, TaskSet tasksAvailable, int remainingCapacity,
+//                 double cost, List<Action> actions) {
+//        this.currentLocation = currentLocation;
+//        this.tasksToDeliver = tasksToDeliver; //new ArrayList<>(tasksToDeliver);
+//        this.tasksAvailable = tasksAvailable; //new ArrayList<>(tasksAvailable);
+//        this.remainingCapacity = remainingCapacity;
+//        this.cost = cost;
+//        this.actions = actions;
+//    }
     
     public double getHeuristic() {
 		if (heuristic != -1) {
@@ -84,47 +95,64 @@ public class State implements Comparable<State> {
         return this.successors;
     }
 
-    public List<Action> getActions() {
-        return this.actions;
-    }
-
-    public void generateSuccessors() {
-        List<State> successors = new ArrayList<>();
-
-        // Option 1: If there are tasks to deliver
-        for (Task dtask : this.tasksToDeliver) {
-            State n = new State(dtask.deliveryCity, this.tasksToDeliver, this.tasksAvailable,
-                    this.remainingCapacity + dtask.weight,
-                    this.cost + this.currentLocation.distanceTo(dtask.deliveryCity),
-                    this.actions
-            );
-            n.tasksToDeliver.remove(dtask);
-            for (City c : this.currentLocation.pathTo(dtask.deliveryCity))
-                n.actions.add(new Move(c));
-            n.actions.add(new Delivery(dtask));
-            successors.add(n);
-        }
-
-        // Option 2: If there are tasks to pick up
-        for (Task ptask : this.tasksAvailable) {
-            if (ptask.weight <= this.remainingCapacity) {
-                State n = new State(ptask.pickupCity, this.tasksToDeliver, this.tasksAvailable,
-                        this.remainingCapacity - ptask.weight,
-                        this.cost + this.currentLocation.distanceTo(ptask.pickupCity),
-                        this.actions
-                );
-                n.tasksToDeliver.add(ptask);
-                n.tasksAvailable.remove(ptask);
-                for (City c : this.currentLocation.pathTo(ptask.pickupCity))
-                    n.actions.add(new Move(c));
-                n.actions.add(new Pickup(ptask));
-                successors.add(n);
-            }
-        }
-
-        // If both tasksToDeliver and tasksAvailable are empty, then this is a final state
-        this.successors = successors;
-    }
+    
+	private List<Action> getActions() {
+		List<Action> actions = new ArrayList<Action>();
+		for (Task task : tasksToDeliver) {
+			actions.add(new Action(Action.Type.DELIVER, task));
+			if (task.deliveryCity.equals(currentLocation)) {
+				return Arrays.asList(new Action(Action.Type.DELIVER, task));
+			}
+		}
+		for (Task task : tasksAvailable) {
+			if (task.weight <= remainingCapacity) {
+				actions.add(new Action(Action.Type.PICKUP, task));
+				if (task.pickupCity.equals(currentLocation)) {
+					return Arrays.asList(new Action(Action.Type.PICKUP, task));
+				}
+			}
+		}
+		return actions;
+	}
+	
+	
+	public void generateSuccessors() {
+		List<State> successorStates = new ArrayList<State>();
+		
+		for (Action action : getActions()) {
+			TaskSet tasksAvailable = this.tasksAvailable.clone();
+			TaskSet tasksToDeliver = this.tasksToDeliver.clone();
+			
+			List<Action> actions = new ArrayList<Action>(this.actions);
+			actions.add(action);
+			
+			State n = new State();
+			if (action.type == Action.Type.PICKUP) {	
+				tasksAvailable.remove(action.task);
+				tasksToDeliver.add(action.task);
+				
+				n.currentLocation = action.task.pickupCity;
+				n.remainingCapacity = this.remainingCapacity - action.task.weight;
+				n.tasksAvailable = tasksAvailable;
+				n.tasksToDeliver = tasksToDeliver;
+				n.actions = actions;
+				n.cost = this.cost + this.currentLocation.distanceTo(n.currentLocation);
+			}
+			else if (action.type == Action.Type.DELIVER) {
+				tasksToDeliver.remove(action.task);
+				
+				n.currentLocation = action.task.deliveryCity;
+				n.remainingCapacity = this.remainingCapacity + action.task.weight;
+				n.tasksAvailable = tasksAvailable;
+				n.tasksToDeliver = tasksToDeliver;
+				n.actions = actions;
+				n.cost = this.cost + this.currentLocation.distanceTo(n.currentLocation);
+			}
+			
+			successorStates.add(n);
+		}
+		this.successors = successorStates;
+	}
 
     public boolean isAlreadyDiscoveredAs(State other) {
         List<Boolean> checks = new ArrayList<>();
