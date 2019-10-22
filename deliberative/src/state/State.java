@@ -35,7 +35,7 @@ public class State {
     private List<State> successors;
 
     public State(Vehicle vehicle, TaskSet tasks, TaskSet carriedTasks) {
-        this.currentLocation = vehicle.homeCity();
+        this.currentLocation = vehicle.getCurrentCity();
         this.tasksToDeliver = new ArrayList<>(carriedTasks);
         this.tasksAvailable = new ArrayList<>(tasks);
         this.remainingCapacity = vehicle.capacity();
