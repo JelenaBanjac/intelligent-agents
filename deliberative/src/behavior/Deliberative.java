@@ -13,10 +13,12 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 import state.State;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * An optimal planner for one vehicle.
@@ -66,12 +68,22 @@ public class Deliberative implements DeliberativeBehavior {
                 break;
             case BFS:
                 State finalState = BFS(initialState);
-                plan = buildPlan(finalState);
+                plan = naivePlan(vehicle, tasks);
+                // plan = buildPlan(finalState);
                 break;
             default:
                 throw new AssertionError("Should not happen.");
         }
         return plan;
+    }
+
+    private boolean stateIsRedundant(State s, List<State> C) {
+        for (State c : C) {
+            if (s.isAlreadyDiscoveredAs(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
@@ -116,10 +128,12 @@ public class Deliberative implements DeliberativeBehavior {
         Q.add(initial);
 
         while (!Q.isEmpty()) {
-            State n = Q.remove();
+            State n = Q.poll();
 
             // Check if we have already reached n with lesser cost
-            if (!alreadyReachedState(n, C)) {
+            if (!stateIsRedundant(n, C)) {
+                n.printState();
+                C.add(n);
                 n.generateSuccessors();
 
                 if (n.getSuccessors().isEmpty())
@@ -142,23 +156,26 @@ public class Deliberative implements DeliberativeBehavior {
 
         return optimalState;
     }
-
-    private boolean alreadyReachedState(State n, List<State> C) {
-        for (State c : C) {
-            if (n.isSameState(c)) return true;
+/*
+    private boolean alreadyReachedState(OldState n, List<OldState> C) {
+        for (OldState c : C) {
+            if (n.isSameState(c)) {
+                System.out.println("Match!");
+                return true;
+            }
         }
         return false;
     }
 
-    private Plan buildPlan(State finalState) {
+    private Plan buildPlan(OldState finalState) {
         City startingPoint = finalState.getPreviousStates().get(0).getVehiclePos();
         Plan plan = new Plan(startingPoint);
 
-        for (State state : finalState.getPreviousStates()) {
+        for (OldState state : finalState.getPreviousStates()) {
             for (Action a : state.getActions())
                 plan.append(a);
         }
 
         return plan;
-    }
+    }*/
 }
