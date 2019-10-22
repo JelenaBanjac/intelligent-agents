@@ -1,6 +1,7 @@
 package behavior;
 
 /* import table */
+import logist.plan.Action;
 import logist.simulation.Vehicle;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
@@ -11,7 +12,6 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 import state.State;
-import state.StateR;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -66,12 +66,12 @@ public class Deliberative implements DeliberativeBehavior {
                 break;
             case BFS:
                 State finalState = BFS(initialState);
-                plan = naivePlan(vehicle, tasks);
-                // plan = buildPlan(finalState);
+                plan = buildPlan(finalState, vehicle.homeCity());
                 break;
             default:
                 throw new AssertionError("Should not happen.");
         }
+        System.out.println("Optimal plan distance: " + plan.totalDistance());
         return plan;
     }
 
@@ -130,7 +130,7 @@ public class Deliberative implements DeliberativeBehavior {
 
             // Check if we have already reached n with lesser cost
             if (!stateIsRedundant(n, C)) {
-                n.printState();
+                //n.printState();
                 C.add(n);
                 n.generateSuccessors();
 
@@ -154,26 +154,14 @@ public class Deliberative implements DeliberativeBehavior {
 
         return optimalState;
     }
-/*
-    private boolean alreadyReachedState(OldState n, List<OldState> C) {
-        for (OldState c : C) {
-            if (n.isSameState(c)) {
-                System.out.println("Match!");
-                return true;
-            }
-        }
-        return false;
-    }
 
-    private Plan buildPlan(OldState finalState) {
-        City startingPoint = finalState.getPreviousStates().get(0).getVehiclePos();
+    private Plan buildPlan(State finalState, City startingPoint) {
         Plan plan = new Plan(startingPoint);
 
-        for (OldState state : finalState.getPreviousStates()) {
-            for (Action a : state.getActions())
-                plan.append(a);
+        for (Action a : finalState.getActions()) {
+            plan.append(a);
         }
 
         return plan;
-    }*/
+    }
 }

@@ -44,13 +44,13 @@ public class State {
     }
 
     public State(City currentLocation, List<Task> tasksToDeliver, List<Task> tasksAvailable, int remainingCapacity,
-                 double cost) {
+                 double cost, List<Action> actions) {
         this.currentLocation = currentLocation;
         this.tasksToDeliver = new ArrayList<>(tasksToDeliver);
         this.tasksAvailable = new ArrayList<>(tasksAvailable);
         this.remainingCapacity = remainingCapacity;
         this.cost = cost;
-        this.actions = new ArrayList<>();
+        this.actions = new ArrayList<>(actions);
     }
 
     public double getCost() {
@@ -61,6 +61,10 @@ public class State {
         return this.successors;
     }
 
+    public List<Action> getActions() {
+        return this.actions;
+    }
+
     public void generateSuccessors() {
         List<State> successors = new ArrayList<>();
 
@@ -68,10 +72,12 @@ public class State {
         for (Task dtask : this.tasksToDeliver) {
             State n = new State(dtask.deliveryCity, this.tasksToDeliver, this.tasksAvailable,
                     this.remainingCapacity + dtask.weight,
-                    this.cost + this.currentLocation.distanceTo(dtask.deliveryCity)
+                    this.cost + this.currentLocation.distanceTo(dtask.deliveryCity),
+                    this.actions
             );
             n.tasksToDeliver.remove(dtask);
-            n.actions.add(new Move(dtask.deliveryCity));
+            for (City c : this.currentLocation.pathTo(dtask.deliveryCity))
+                n.actions.add(new Move(c));
             n.actions.add(new Delivery(dtask));
             successors.add(n);
         }
@@ -81,11 +87,13 @@ public class State {
             if (ptask.weight <= this.remainingCapacity) {
                 State n = new State(ptask.pickupCity, this.tasksToDeliver, this.tasksAvailable,
                         this.remainingCapacity - ptask.weight,
-                        this.cost + this.currentLocation.distanceTo(ptask.pickupCity)
+                        this.cost + this.currentLocation.distanceTo(ptask.pickupCity),
+                        this.actions
                 );
                 n.tasksToDeliver.add(ptask);
                 n.tasksAvailable.remove(ptask);
-                n.actions.add(new Move(ptask.pickupCity));
+                for (City c : this.currentLocation.pathTo(ptask.pickupCity))
+                    n.actions.add(new Move(c));
                 n.actions.add(new Pickup(ptask));
                 successors.add(n);
             }
