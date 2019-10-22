@@ -56,7 +56,7 @@ public class Deliberative implements DeliberativeBehavior {
     @Override
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
         Plan plan;
-        State initialState = new State(vehicle, tasks);
+        State initialState = new State(vehicle, tasks, vehicle.getCurrentTasks());
 
         // Compute the plan with the selected algorithm.
         switch (algorithm) {
