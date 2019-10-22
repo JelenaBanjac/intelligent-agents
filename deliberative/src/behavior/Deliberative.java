@@ -1,7 +1,6 @@
 package behavior;
 
 /* import table */
-import logist.plan.Action;
 import logist.simulation.Vehicle;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
@@ -12,13 +11,12 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 import state.State;
+import state.StateR;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * An optimal planner for one vehicle.

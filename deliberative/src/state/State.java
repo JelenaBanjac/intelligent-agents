@@ -1,131 +1,108 @@
 package state;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import logist.plan.Action;
+import logist.plan.Action.Move;
+import logist.plan.Action.Pickup;
+import logist.plan.Action.Delivery;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology.City;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class State {
-    public double getCost() {
-        return cost;
-    }
+    // The city in which the vehicle currently is
+    private City currentLocation;
 
-    public void setCost(double cost) {
-        this.cost = cost;
-    }
+    // Tasks currently being carried (excl. tasks delivered in the city)
+    private List<Task> tasksToDeliver;
 
-    private City vehiclePosition;
-    private Map<Task, City> taskPositions;
-    private List<Task> tasksCarried;
-    private List<Task>  tasksLeft;
+    // Tasks left to pick up
+    private List<Task> tasksAvailable;
+
+    // Remaining capacity of the vehicle (after deliveries)
     private int remainingCapacity;
+
+    // Cost of the path until now
     private double cost;
+
+    // Actions to achieve the current state
+    private List<Action> actions;
+
+    // Future states
     private List<State> successors;
 
-    public List<State> getSuccessors() {
-        return successors;
-    }
-
-    public void setSuccessors(List<State> successors) {
-        this.successors = successors;
-    }
-
     public State(Vehicle vehicle, TaskSet tasks) {
-        this.vehiclePosition = vehicle.homeCity();
-
-        this.taskPositions = new HashMap<>();
-        for (Task t : tasks)
-            this.taskPositions.put(t, t.pickupCity);
-
-        this.tasksCarried = new ArrayList<>();
-        this.tasksLeft = new ArrayList<>(tasks);
+        this.currentLocation = vehicle.homeCity();
+        this.tasksToDeliver = new ArrayList<>();
+        this.tasksAvailable = new ArrayList<>(tasks);
         this.remainingCapacity = vehicle.capacity();
         this.cost = 0;
+        this.actions = new ArrayList<>();
     }
 
-    public State(City vehiclePosition, Map<Task, City> taskPositions,
-                 List<Task> tasksCarried, List<Task> tasksLeft, int remainingCapacity,
+    public State(City currentLocation, List<Task> tasksToDeliver, List<Task> tasksAvailable, int remainingCapacity,
                  double cost) {
-        this.vehiclePosition = vehiclePosition;
-        this.taskPositions = new HashMap<>(taskPositions);
-        this.tasksCarried = new ArrayList<>(tasksCarried);
-        this.tasksLeft = new ArrayList<>(tasksLeft);
+        this.currentLocation = currentLocation;
+        this.tasksToDeliver = new ArrayList<>(tasksToDeliver);
+        this.tasksAvailable = new ArrayList<>(tasksAvailable);
         this.remainingCapacity = remainingCapacity;
         this.cost = cost;
+        this.actions = new ArrayList<>();
     }
 
-    public void printState() {
-        System.out.println("Vehicle at " + this.vehiclePosition);
-        System.out.println("Task positions: " + this.taskPositions.toString());
-        System.out.println("# tasks carried: " + this.tasksCarried.size());
-        System.out.println("# tasks left: " + this.tasksLeft.size());
-        System.out.println("remaining capacity: " + this.remainingCapacity);
-        System.out.println("cost: " + this.cost);
-        System.out.println();
+    public double getCost() {
+        return this.cost;
+    }
+
+    public List<State> getSuccessors() {
+        return this.successors;
     }
 
     public void generateSuccessors() {
         List<State> successors = new ArrayList<>();
 
-        for (City neighbor : this.vehiclePosition.neighbors()) {
-            double cost = this.cost + this.vehiclePosition.distanceTo(neighbor);
+        // Option 1: If there are tasks to deliver
+        for (Task dtask : this.tasksToDeliver) {
+            State n = new State(dtask.deliveryCity, this.tasksToDeliver, this.tasksAvailable,
+                    this.remainingCapacity + dtask.weight,
+                    this.cost + this.currentLocation.distanceTo(dtask.deliveryCity)
+            );
+            n.tasksToDeliver.remove(dtask);
+            n.actions.add(new Move(dtask.deliveryCity));
+            n.actions.add(new Delivery(dtask));
+            successors.add(n);
+        }
 
-            if (!(this.tasksCarried.isEmpty() && this.tasksLeft.isEmpty())) {
-                // Generate successor where no task is picked up
-                successors.add(
-                        new State(neighbor, this.taskPositions, this.tasksCarried, this.tasksLeft,
-                                this.remainingCapacity, cost)
+        // Option 2: If there are tasks to pick up
+        for (Task ptask : this.tasksAvailable) {
+            if (ptask.weight <= this.remainingCapacity) {
+                State n = new State(ptask.pickupCity, this.tasksToDeliver, this.tasksAvailable,
+                        this.remainingCapacity - ptask.weight,
+                        this.cost + this.currentLocation.distanceTo(ptask.pickupCity)
                 );
-
-                // Generate successors where a task is picked up from the current city
-                for (Task task : this.tasksLeft) {
-                    if (task.pickupCity == this.vehiclePosition && task.weight <= this.remainingCapacity) {
-                        State succ = new State(neighbor, this.taskPositions, this.tasksCarried,
-                                this.tasksLeft, this.remainingCapacity, cost);
-                        succ.tasksCarried.add(task);
-                        succ.tasksLeft.remove(task);
-                        succ.remainingCapacity -= task.weight;
-                        successors.add(succ);
-                    }
-                }
+                n.tasksToDeliver.add(ptask);
+                n.tasksAvailable.remove(ptask);
+                n.actions.add(new Move(ptask.pickupCity));
+                n.actions.add(new Pickup(ptask));
+                successors.add(n);
             }
         }
 
-        for (State succ : successors) {
-            succ.updateTaskPositions();
-        }
-
+        // If both tasksToDeliver and tasksAvailable are empty, then this is a final state
         this.successors = successors;
-    }
-
-    private void updateTaskPositions() {
-        List<Task> tasksCarried = new ArrayList<>(this.tasksCarried);
-        for (Task carried : tasksCarried) {
-            // Update task position
-            this.taskPositions.put(carried, this.vehiclePosition);
-
-            // Check if task can be delivered
-            if (carried.deliveryCity == this.vehiclePosition) {
-                this.tasksCarried.remove(carried);
-                this.remainingCapacity += carried.weight;
-            }
-        }
     }
 
     public boolean isAlreadyDiscoveredAs(State other) {
         List<Boolean> checks = new ArrayList<>();
         // Is in the same city
-        checks.add(this.vehiclePosition.equals(other.vehiclePosition));
+        checks.add(this.currentLocation.equals(other.currentLocation));
         // Carrying the same tasks
-        checks.add(this.tasksCarried.equals(other.tasksCarried));
+        checks.add(this.tasksToDeliver.equals(other.tasksToDeliver));
         // Having completed the same deliveries
-        checks.add(this.tasksLeft.equals(other.tasksLeft));
+        checks.add(this.tasksAvailable.equals(other.tasksAvailable));
         // Having equal or greater cost
         checks.add(this.cost >= other.cost);
 
@@ -133,5 +110,14 @@ public class State {
             if (!c) return false;
         }
         return true;
+    }
+
+    public void printState() {
+        System.out.println("Vehicle at " + this.currentLocation);
+        System.out.println("# tasks being carried: " + this.tasksToDeliver.size());
+        System.out.println("# tasks left: " + this.tasksAvailable.size());
+        System.out.println("remaining capacity: " + this.remainingCapacity);
+        System.out.println("cost: " + this.cost);
+        System.out.println();
     }
 }
