@@ -12,7 +12,7 @@ import logist.topology.Topology.City;
 import java.util.ArrayList;
 import java.util.List;
 
-public class State {
+public class State implements Comparable<State> {
     // The city in which the vehicle currently is
     private City currentLocation;
 
@@ -33,6 +33,9 @@ public class State {
 
     // Future states
     private List<State> successors;
+    
+    // Calculating the heuristic
+    private double heuristic = -1;
 
     public State(Vehicle vehicle, TaskSet tasks, TaskSet carriedTasks) {
         this.currentLocation = vehicle.getCurrentCity();
@@ -52,6 +55,26 @@ public class State {
         this.cost = cost;
         this.actions = new ArrayList<>(actions);
     }
+    
+    public double getHeuristic() {
+		if (heuristic != -1) {
+			return cost + heuristic;
+		}
+		heuristic = 0;
+		for (Task task : tasksAvailable) {
+			double cost = currentLocation.distanceTo(task.pickupCity) + task.pathLength();
+			if (cost > heuristic) {
+				heuristic = cost;
+			}
+		}
+		for (Task task : tasksToDeliver) {
+			double cost = currentLocation.distanceTo(task.deliveryCity);
+			if (cost > heuristic) {
+				heuristic = cost;
+			}
+		}
+		return cost + heuristic;
+	}
 
     public double getCost() {
         return this.cost;
@@ -128,4 +151,23 @@ public class State {
         System.out.println("cost: " + this.cost);
         System.out.println();
     }
+
+	public City getCurrentLocation() {
+		return currentLocation;
+	}
+
+	public void setCurrentLocation(City currentLocation) {
+		this.currentLocation = currentLocation;
+	}
+	
+	public boolean isFinal() {
+		return tasksAvailable.isEmpty() && tasksToDeliver.isEmpty();
+	}
+
+	@Override
+	public int compareTo(State s0) {
+		return Double.compare(this.getHeuristic(), s0.getHeuristic());
+	}
+    
+    
 }

@@ -14,6 +14,7 @@ import logist.topology.Topology.City;
 import state.State;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -57,20 +58,25 @@ public class Deliberative implements DeliberativeBehavior {
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
         Plan plan;
         State initialState = new State(vehicle, tasks, vehicle.getCurrentTasks());
-
+        State finalState;
+        
+        long startTime = System.currentTimeMillis();
         // Compute the plan with the selected algorithm.
         switch (algorithm) {
             case ASTAR:
                 // ...
-                plan = naivePlan(vehicle, tasks);
+            	finalState = ASTAR(initialState);
+                plan = buildPlan(finalState, vehicle.homeCity());
                 break;
             case BFS:
-                State finalState = BFS(initialState);
+                finalState = BFS(initialState);
                 plan = buildPlan(finalState, vehicle.homeCity());
                 break;
             default:
                 throw new AssertionError("Should not happen.");
         }
+        System.out.println("------- " + algorithm.toString() + " --------");
+        System.out.println("Time taken: " + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds");
         System.out.println("Optimal plan distance: " + plan.totalDistance());
         return plan;
     }
@@ -82,6 +88,15 @@ public class Deliberative implements DeliberativeBehavior {
             }
         }
         return false;
+    }
+    
+    public State itsCopyInC(State n, List<State> C) {
+    	for (State c : C) {
+            if (n.isAlreadyDiscoveredAs(c)) {
+                return c;
+            }
+        }
+        return null;
     }
 
     private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
@@ -154,6 +169,37 @@ public class Deliberative implements DeliberativeBehavior {
 
         return optimalState;
     }
+    
+	public State ASTAR(State initial) {
+    	Plan plan = new Plan(initial.getCurrentLocation());
+    	
+    	List<State> Q = new LinkedList<>();
+        List<State> C = new ArrayList<>();
+        State n = null;
+        
+        Q.add(initial);
+        
+        while (!Q.isEmpty()) {
+        	n = Q.remove(0);
+        	
+        	if (n.isFinal()) return n;
+        	
+        	if (!stateIsRedundant(n, C) || n.getHeuristic() < itsCopyInC(n, C).getHeuristic()) {
+        		// add n to C
+        		C.add(n);
+        		// add successors of n
+        		n.generateSuccessors();
+        		Q.addAll(n.getSuccessors());
+        		// sort and merge
+        		Collections.sort(Q);
+        	}
+
+        }
+        
+        return n;
+    }
+    
+    
 
     private Plan buildPlan(State finalState, City startingPoint) {
         Plan plan = new Plan(startingPoint);
