@@ -109,7 +109,7 @@ hs_err_pid*
 !repast.jar
 
 # Exercise 1
-!rabbits/banjac-triantafyllou-in/banjac-triantafyllou-in.jar
-!rabbits/banjac-triantafyllou-in.zip
-!reactive/banjac-triantafyllou-ex2.zip
-
+!1-rabbits/banjac-triantafyllou-in/banjac-triantafyllou-in.jar
+!1-rabbits/banjac-triantafyllou-in.zip
+!2-reactive/banjac-triantafyllou-ex2.zip
+!3-deliberative/banjac-triantafyllou-ex3.zip
