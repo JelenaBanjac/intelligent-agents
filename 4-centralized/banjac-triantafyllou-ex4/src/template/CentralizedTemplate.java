@@ -57,25 +57,48 @@ public class CentralizedTemplate implements CentralizedBehavior {
         this.agent = agent;
     }
 
+//    @Override
+//    public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
+//        long time_start = System.currentTimeMillis();
+//        List<Plan> plans = new ArrayList<Plan>();
+//        
+////		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
+//        Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+//
+//        plans.add(planVehicle1);
+//        
+//        while (plans.size() < vehicles.size()) {
+//            plans.add(Plan.EMPTY);
+//        }
+//        
+//        long time_end = System.currentTimeMillis();
+//        long duration = time_end - time_start;
+//        System.out.println("The plan was generated in " + duration + " milliseconds.");
+//        
+//        // TODO: plans in the same order as its corresponding vehicles
+//        return plans;
+//    }
+    
     @Override
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
         
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
-
-        List<Plan> plans = new ArrayList<Plan>();
-        plans.add(planVehicle1);
-        while (plans.size() < vehicles.size()) {
-            plans.add(Plan.EMPTY);
-        }
+        List<Plan> plans = sls(vehicles, tasks);
         
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
         
+        // TODO: plans in the same order as its corresponding vehicles
         return plans;
     }
+    
+    private List<Plan> sls(List<Vehicle> vehicles, TaskSet tasks) {
+    	List<Plan> plans = new ArrayList<Plan>();
+    	
+    	return plans;
+    }
+
 
     private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
         City current = vehicle.getCurrentCity();
