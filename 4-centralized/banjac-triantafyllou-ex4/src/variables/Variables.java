@@ -1,7 +1,10 @@
 package variables;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
@@ -10,11 +13,13 @@ import logist.task.TaskSet;
 import variables.PDTask.Type;
 
 public class Variables {
+	/**
+	 * Vehicle as a key, and list of tasks as a value.
+	 * The order of the list is important since it represents 
+	 * the time point when the task will be executed.
+	 */
+	private HashMap<Vehicle, List<PDTask>> variables;
 
-	private HashMap<PDTask, PDTask> nextTask = new HashMap<PDTask, PDTask>();
-	private HashMap<PDTask, Integer> time = new HashMap<PDTask, Integer>();
-	private HashMap<Task, Vehicle> vehicle = new HashMap<Task, Vehicle>();
-	
 	private Vehicle biggestVehicle(List<Vehicle> vehicles) {
 		// initially, get the first vehicle from the list
 		Vehicle biggestVehicle = vehicles.get(0);
@@ -29,117 +34,72 @@ public class Variables {
 		return biggestVehicle;
 	}
 	
-	public void generateNextTask(List<Vehicle> vehicles, TaskSet tasks) {
-		this.nextTask = new HashMap<PDTask, PDTask>();
+	
+	public void initialize(List<Vehicle> vehicles, TaskSet tasks) {
+		this.variables = new HashMap<Vehicle, List<PDTask>>();
 		
-		// initialize the vehicles with null values
+		// initialize all vehicle tasks
 		for (Vehicle vehicle : vehicles) {
-			PDTask key = new PDTask(vehicle);
-			PDTask value = null;
-			this.nextTask.put(key, value);
+			this.variables.put(vehicle, new ArrayList<PDTask>());
 		}
-		// put first task to pickup to the biggest vehicle
+		
+		// give all the tasks to the biggest vehicle (after pickup immediately deliver)
 		Vehicle biggestVehicle = biggestVehicle(vehicles);
-		PDTask key = new PDTask(biggestVehicle);
-		PDTask value = new PDTask(tasks.iterator().next(), Type.PICKUP);
-		this.nextTask.put(key, value);
-		
-		
-		
-		
 		for (Task task : tasks) {
-			PDTask keyP = new PDTask(task, Type.PICKUP);
-			PDTask valueP = null;
-			this.nextTask.put(keyP, valueP);
-			
-			PDTask keyD = new PDTask(task, Type.DELIVER);
-			PDTask valueD = null;
-			this.nextTask.put(keyD, valueD);			
-		}
-		
-		
-		
-		
-		if (this.nextTask.size() != 2*tasks.size() + vehicles.size()) {
-			try {
-				throw new Exception("The size of `nextTask` should be " + (2*tasks.size() + vehicles.size()) + ", instead it is " + this.nextTask.size());
-			} catch (Exception e) {
-				e.printStackTrace();
+			if (task.weight > biggestVehicle.capacity()) {
+				new Exception("Problem is unsolvable!");
 			}
+			this.variables.get(biggestVehicle).add(new PDTask(task, Type.PICKUP));
+			this.variables.get(biggestVehicle).add(new PDTask(task, Type.DELIVER));
 		}
+	
+	}
+
+	private List<Task> getTasksOnly(List<PDTask> pdtasks) {
+		List<Task> tasks = new ArrayList<Task>();
+		
+		for (PDTask pdtask : pdtasks) {
+			tasks.add(pdtask.getTask());
+		}
+		return tasks;
 	}
 	
-	public void generateTime(TaskSet tasks) {
-		// TODO: values should be different, and range from 1 to 2*N_T
-		this.time = new HashMap<PDTask, Integer>();
-		
-		for (Task task : tasks) {
-			PDTask keyP = new PDTask(task, Type.PICKUP);
-			int valueP = 0;
-			this.time.put(keyP, valueP);
-			
-			PDTask keyD = new PDTask(task, Type.DELIVER);
-			int valueD = 0;
-			this.time.put(keyD, valueD);			
-		}
-		
-		if (this.time.size() != 2*tasks.size()) {
-			try {
-				throw new Exception("The size of `time` should be " + (2*tasks.size()) + ", instead it is " + this.time.size());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-	}
-	
-	public void generateVehicle(Vehicle biggestVehicle, TaskSet tasks) {
-		
-		this.vehicle = new HashMap<Task, Vehicle>();
-		
-		for (Task task : tasks) {
-			this.vehicle.put(task, biggestVehicle);		
-		}
-		
-		if (this.vehicle.size() != tasks.size()) {
-			try {
-				throw new Exception("The size of `vehicle` should be " + (tasks.size()) + ", instead it is " + this.vehicle.size());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	public boolean constraints() {
-		boolean satisfied = false;
-		
+	public boolean constraints(TaskSet tasks) {
 		//TODO: check constraints
 		
-		
-		for (PDTask key : this.nextTask.keySet()) {
-			PDTask value = this.nextTask.get(key);
-			
-			// task
-			if (key.getTask() != null) {
-				// nextTask(t, TYPE) != (t, TYPE)
-				if (key.getTask().id == value.getTask().id && key.getType() == value.getType()) {
-					return false;
-				}
-				
-			// vehicle
-			} else {
-				// nextTask(v_k) != (t_j, DELIVER)
-				if (value.getType() == Type.DELIVER) {
-					return false;
-				}
-			}
-			
-			
-			
+		int totalTasks = 0;
+		Set<Task> tasksSet = new HashSet<Task>();
+		for (List<PDTask> vehicleTasks : this.variables.values()) {
+			totalTasks += vehicleTasks.size();
+			tasksSet.addAll(getTasksOnly(vehicleTasks));
+		}
+
+		if (totalTasks != 2*tasks.size()) {
+			return false;
+		}
+		tasksSet.retainAll(tasks);
+		if (tasksSet.size() != tasks.size()) {
+			return false;
 		}
 		
 		
-		return satisfied;
+		for (Vehicle vehicle : this.variables.keySet()) {
+			List<PDTask> vehiclePDTasks = this.variables.get(vehicle);
+			List<Task> vehicleTasks = getTasksOnly(vehiclePDTasks);
+			
+			for (Task task : vehicleTasks) {
+				int tp = vehiclePDTasks.indexOf(new PDTask(task, Type.PICKUP));
+				int td = vehiclePDTasks.indexOf(new PDTask(task, Type.DELIVER));
+				
+				if (tp == -1 || td == -1) {
+					return false;
+				}
+				if (tp > td) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 	
 	public double cost(Plan plan, Vehicle vehicle) {

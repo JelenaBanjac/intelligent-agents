@@ -1,6 +1,5 @@
 package variables;
 
-import logist.simulation.Vehicle;
 import logist.task.Task;
 
 public class PDTask {
@@ -8,20 +7,12 @@ public class PDTask {
 	
 	private Task task;
 	private Type type;
-	private Vehicle vehicle;
 	
 	public PDTask(Task task, Type type) {
 		this.task = task;
 		this.type = type;
-		this.vehicle = null;
 	}
 	
-	public PDTask(Vehicle vehicle) {
-		this.task = null;
-		this.type = null;
-		this.vehicle = vehicle;
-	}
-
 	public Task getTask() {
 		return task;
 	}
@@ -38,13 +29,6 @@ public class PDTask {
 		this.type = type;
 	}
 
-	public Vehicle getVehicle() {
-		return vehicle;
-	}
-
-	public void setVehicle(Vehicle vehicle) {
-		this.vehicle = vehicle;
-	}
 	
 	
 }
