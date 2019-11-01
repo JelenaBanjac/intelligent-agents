@@ -65,7 +65,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
         
-        Solution solution = solution(vehicles, tasks);
+        Solution solution = Solution.SLS(vehicles, tasks);
         
         List<Plan> plans = new ArrayList<Plan>();
         // for every vehicle, add the solution of SLS
@@ -81,13 +81,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
         return plans;
     }
     
-    private Solution solution(List<Vehicle> vehicles, TaskSet tasks) {
-    	Solution initialSolution = new Solution(vehicles, tasks);
-    	
-    	//TODO: implement sls algorithm
-    	
-    	return initialSolution;
-    } 
 
     private Plan slsPlan(Vehicle vehicle, List<PDTask> vehicleTasks) {
     	City current = vehicle.getCurrentCity();

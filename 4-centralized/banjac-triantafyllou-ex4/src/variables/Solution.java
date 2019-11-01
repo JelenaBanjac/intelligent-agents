@@ -34,6 +34,10 @@ public class Solution {
 		return biggestVehicle;
 	}
 	
+	public Solution() {
+		this.variables = new HashMap<Vehicle, List<PDTask>>();
+	}
+	
 	
 	public Solution(List<Vehicle> vehicles, TaskSet tasks) {
 		this.variables = new HashMap<Vehicle, List<PDTask>>();
@@ -52,9 +56,56 @@ public class Solution {
 			this.variables.get(biggestVehicle).add(new PDTask(task, Type.PICKUP));
 			this.variables.get(biggestVehicle).add(new PDTask(task, Type.DELIVER));
 		}
+	}
 	
+	public Solution(Solution s) {
+		this.variables = new HashMap<Vehicle, List<PDTask>>();
+		
+		for (Vehicle vehicle : s.variables.keySet()) {
+			List<PDTask> tasks = s.variables.get(vehicle);
+			this.variables.put(vehicle, new ArrayList<PDTask>(tasks));
+		}
+	}
+	
+	private List<Solution> chooseNeighbors() {
+		List<Solution> neighbors = new ArrayList<Solution>();
+		
+		return neighbors;
 	}
 
+    private Solution changeVehicle(Solution A, Vehicle v1, Vehicle v2) {
+    	Solution A1 = new Solution(A);
+    	
+    	return A1;
+    }
+    
+    private Solution changingTaskOrder(Solution A, Vehicle vi, int tIdx1, int iIdx2) {
+    	Solution A1 = new Solution(A);
+    	
+    	return A1;
+    }
+    
+    private Solution localChoice(List<Solution> neighbors, Solution A, double p) {
+    	Solution Anew = null;
+    	
+    	return Anew;
+    }
+    
+    public static Solution SLS(List<Vehicle> vehicles, TaskSet tasks) {
+    	//TODO: implement SLS algorithm
+    	Solution initialSolution = new Solution(vehicles, tasks);
+    	
+    	int iteration = 0;
+    	int maxNumberOfIterations = 10000;
+    	
+    	do {
+			
+    		iteration++;
+		} while (iteration < maxNumberOfIterations);
+    	
+    	return initialSolution;
+    } 
+	
 	private List<Task> getTasksOnly(List<PDTask> pdtasks) {
 		List<Task> tasks = new ArrayList<Task>();
 		
