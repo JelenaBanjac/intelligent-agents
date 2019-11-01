@@ -2,11 +2,7 @@ package variables;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import logist.plan.Plan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
@@ -19,6 +15,7 @@ public class Solution {
 	 * the time point when the task will be executed.
 	 */
 	public HashMap<Vehicle, List<PDTask>> variables;
+	
 
 	private Vehicle biggestVehicle(List<Vehicle> vehicles) {
 		// initially, get the first vehicle from the list
@@ -67,44 +64,24 @@ public class Solution {
 		}
 	}
 	
-	private List<Solution> chooseNeighbors() {
-		List<Solution> neighbors = new ArrayList<Solution>();
+	public List<Vehicle> getVehicles() {
+		List<Vehicle> vehicles = new ArrayList<Vehicle>();
 		
-		return neighbors;
+		for (Vehicle vehicle : this.variables.keySet()) {
+			vehicles.add(vehicle);
+		}
+		return vehicles;
 	}
-
-    private Solution changeVehicle(Solution A, Vehicle v1, Vehicle v2) {
-    	Solution A1 = new Solution(A);
-    	
-    	return A1;
-    }
-    
-    private Solution changingTaskOrder(Solution A, Vehicle vi, int tIdx1, int iIdx2) {
-    	Solution A1 = new Solution(A);
-    	
-    	return A1;
-    }
-    
-    private Solution localChoice(List<Solution> neighbors, Solution A, double p) {
-    	Solution Anew = null;
-    	
-    	return Anew;
-    }
-    
-    public static Solution SLS(List<Vehicle> vehicles, TaskSet tasks) {
-    	//TODO: implement SLS algorithm
-    	Solution initialSolution = new Solution(vehicles, tasks);
-    	
-    	int iteration = 0;
-    	int maxNumberOfIterations = 10000;
-    	
-    	do {
-			
-    		iteration++;
-		} while (iteration < maxNumberOfIterations);
-    	
-    	return initialSolution;
-    } 
+	
+	public double vehicleTasksWeight(List<PDTask> tasks) {
+		double totalWeight = 0.0;
+		
+		for (PDTask task : tasks) {
+			totalWeight += task.getTask().weight;
+		}
+		
+		return totalWeight;
+	}
 	
 	private List<Task> getTasksOnly(List<PDTask> pdtasks) {
 		List<Task> tasks = new ArrayList<Task>();
@@ -115,30 +92,30 @@ public class Solution {
 		return tasks;
 	}
 	
-	public boolean constraints(TaskSet tasks) {
+	
+	
+	public boolean constraints() {
 		//TODO: check constraints
 		
 		int totalTasks = 0;
-		Set<Task> tasksSet = new HashSet<Task>();
 		for (List<PDTask> vehicleTasks : this.variables.values()) {
 			totalTasks += vehicleTasks.size();
-			tasksSet.addAll(getTasksOnly(vehicleTasks));
 		}
 
-		if (totalTasks != 2*tasks.size()) {
+		// it is even number of tasks since we need to have them PICKEDUP and DELIVERED
+		if (totalTasks % 2 != 0) {
 			return false;
 		}
-		tasksSet.retainAll(tasks);
-		if (tasksSet.size() != tasks.size()) {
-			return false;
-		}
-		
 		
 		for (Vehicle vehicle : this.variables.keySet()) {
 			List<PDTask> vehiclePDTasks = this.variables.get(vehicle);
 			List<Task> vehicleTasks = getTasksOnly(vehiclePDTasks);
 			
-			double totalTaskVeight = 0.0;
+			// if vehicle cannot handle all the tasks it carries
+			if (vehicleTasksWeight(vehiclePDTasks) > vehicle.capacity()) {
+				return false;
+			}
+						
 			for (Task task : vehicleTasks) {
 				int tp = vehiclePDTasks.indexOf(new PDTask(task, Type.PICKUP));
 				int td = vehiclePDTasks.indexOf(new PDTask(task, Type.DELIVER));
@@ -151,27 +128,11 @@ public class Solution {
 				if (tp > td) {
 					return false;
 				}
-				
-				totalTaskVeight += task.weight;
 			}
 			
-			// if vehicle cannot handle all the tasks it carries
-			if (totalTaskVeight > vehicle.capacity()) {
-				return false;
-			}
 		}
-		
-		
 		
 		return true;
 	}
 	
-	public double cost(Plan plan, Vehicle vehicle) {
-		double cost = 0.0;
-		
-		//TODO: calculate the cost
-		cost = plan.totalDistance() * vehicle.costPerKm();
-		
-		return cost;
-	}
 }
