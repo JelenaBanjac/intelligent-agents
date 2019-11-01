@@ -19,6 +19,9 @@ import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+import variables.PDTask;
+import variables.PDTask.Type;
+import variables.Solution;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -62,7 +65,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
         
-        List<Plan> plans = slsPlan(vehicles, tasks);
+        Solution solution = solution(vehicles, tasks);
+        
+        List<Plan> plans = new ArrayList<Plan>();
+        // for every vehicle, add the solution of SLS
+        for (Vehicle vehicle : vehicles) {
+        	plans.add(slsPlan(vehicle, solution.variables.get(vehicle)));
+        }
         
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
@@ -72,14 +81,44 @@ public class CentralizedTemplate implements CentralizedBehavior {
         return plans;
     }
     
-    private List<Plan> slsPlan(List<Vehicle> vehicles, TaskSet tasks) {
-    	List<Plan> plans = new ArrayList<Plan>();
+    private Solution solution(List<Vehicle> vehicles, TaskSet tasks) {
+    	Solution initialSolution = new Solution(vehicles, tasks);
     	
     	//TODO: implement sls algorithm
     	
-    	return plans;
+    	return initialSolution;
     } 
 
+    private Plan slsPlan(Vehicle vehicle, List<PDTask> vehicleTasks) {
+    	City current = vehicle.getCurrentCity();
+        Plan plan = new Plan(current);
+
+        for (PDTask task : vehicleTasks) {
+        	if (task.getType() == Type.PICKUP) {
+        		// move: current city => pickup location
+        		for (City city : current.pathTo(task.getTask().pickupCity)) {
+        			plan.appendMove(city);
+        		}
+        		// pickup
+        		plan.appendPickup(task.getTask());
+        		
+        		 // set current city
+        		current = task.getTask().pickupCity;
+        	} else {
+        		// move: pickup location => delivery location
+        		for (City city : current.pathTo(task.getTask().deliveryCity)) {
+        			plan.appendMove(city);
+        		}
+        		// deliver
+        		plan.appendDelivery(task.getTask());
+        		
+        		// set current city
+        		current = task.getTask().deliveryCity;
+        	}
+            
+        }
+        return plan;
+    }
 
     private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
         City current = vehicle.getCurrentCity();

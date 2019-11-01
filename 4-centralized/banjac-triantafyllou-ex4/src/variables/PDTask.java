@@ -3,7 +3,7 @@ package variables;
 import logist.task.Task;
 
 public class PDTask {
-	enum Type {PICKUP, DELIVER};
+	public enum Type {PICKUP, DELIVER};
 	
 	private Task task;
 	private Type type;

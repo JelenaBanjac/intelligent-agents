@@ -12,13 +12,13 @@ import logist.task.Task;
 import logist.task.TaskSet;
 import variables.PDTask.Type;
 
-public class Variables {
+public class Solution {
 	/**
 	 * Vehicle as a key, and list of tasks as a value.
 	 * The order of the list is important since it represents 
 	 * the time point when the task will be executed.
 	 */
-	private HashMap<Vehicle, List<PDTask>> variables;
+	public HashMap<Vehicle, List<PDTask>> variables;
 
 	private Vehicle biggestVehicle(List<Vehicle> vehicles) {
 		// initially, get the first vehicle from the list
@@ -35,7 +35,7 @@ public class Variables {
 	}
 	
 	
-	public void initialize(List<Vehicle> vehicles, TaskSet tasks) {
+	public Solution(List<Vehicle> vehicles, TaskSet tasks) {
 		this.variables = new HashMap<Vehicle, List<PDTask>>();
 		
 		// initialize all vehicle tasks
@@ -87,18 +87,31 @@ public class Variables {
 			List<PDTask> vehiclePDTasks = this.variables.get(vehicle);
 			List<Task> vehicleTasks = getTasksOnly(vehiclePDTasks);
 			
+			double totalTaskVeight = 0.0;
 			for (Task task : vehicleTasks) {
 				int tp = vehiclePDTasks.indexOf(new PDTask(task, Type.PICKUP));
 				int td = vehiclePDTasks.indexOf(new PDTask(task, Type.DELIVER));
 				
+				// if there is no corresponding pickup/delivery of the task
 				if (tp == -1 || td == -1) {
 					return false;
 				}
+				// if delivery happened before pickup
 				if (tp > td) {
 					return false;
 				}
+				
+				totalTaskVeight += task.weight;
+			}
+			
+			// if vehicle cannot handle all the tasks it carries
+			if (totalTaskVeight > vehicle.capacity()) {
+				return false;
 			}
 		}
+		
+		
+		
 		return true;
 	}
 	
