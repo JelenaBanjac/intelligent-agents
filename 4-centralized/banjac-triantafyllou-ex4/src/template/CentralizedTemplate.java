@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
 import logist.LogistSettings;
 import logist.Measures;
 import logist.behavior.AuctionBehavior;
@@ -22,6 +24,7 @@ import logist.topology.Topology.City;
 import variables.PDTask;
 import variables.PDTask.Type;
 import variables.Solution;
+import java.util.HashMap;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -106,15 +109,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			
 		}
 		
-//		if (N.size() > 0) {
-//			System.out.println("%%%%%%%%%%%%");
-//			System.out.println(cost(Aold));
-//			for (Solution A : N) {
-//				System.out.println(cost(A));
-//			}
-//			System.out.println("%%%%%%%%%%%");
-//		}
-		
 		//TODO: more tasks to change the order, not only 2
 		
 		// apply the changing task order operator
@@ -133,18 +127,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				}
 			}
 		}
-		
-//		if (N.size() > 0) {
-//			System.out.println("++++++++++++");
-//			System.out.println(cost(Aold));
-//			List<Double> costs = new ArrayList<Double>();
-//			for (Solution A : N) {
-//				costs.add(cost(A));
-//			}
-//			Collections.sort(costs);
-//			System.out.println(costs);
-//			System.out.println("++++++++++++");
-//		}
 			
 		return N;
 	}
@@ -200,14 +182,36 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	//TODO: evaluate the best neighbor Anew or the random naighbor with prob p (not the old A)
     	
     	double minCost = 1000000.0;
+
+    	HashMap<Double, List<Solution>> costSolutions = new HashMap<Double, List<Solution>>();
     	for (Solution solution : N) {
-    		if (Anew == null || cost(solution) < minCost ) {
-//    			System.out.println("----");
-//    			System.out.println(Anew);
-    			Anew = new Solution(solution);
-    			minCost = cost(solution);
+    		if (cost(solution) < cost(A) ) {
+    			double key = cost(solution);
+    			List<Solution> values = costSolutions.get(key);
+    			if (values == null) {
+    				values = new ArrayList<Solution>();
+    				values.add(solution);
+    				costSolutions.put(key, values);
+    			} else {
+    				values.add(solution);
+    				costSolutions.put(key, values);
+    			}
     		}
     	}
+    	
+    	Set<Double> ks = costSolutions.keySet();
+    	if (ks.size() > 0) {
+    		minCost = Collections.min(ks);
+    		// get random best solution
+	    	List<Solution> bestSolutions = costSolutions.get(minCost);
+	    	
+	    	if (bestSolutions.size() > 1) {
+		    	int randNum = random.nextInt(bestSolutions.size()-1);
+		    	Anew = bestSolutions.get(randNum);
+	    	} else {
+	    		Anew = bestSolutions.get(0);
+	    	}
+    	} 
 
     	if (Anew != null && random.nextFloat() < p) {
     		return Anew;
@@ -227,14 +231,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
     }
     
     public Solution SLS(List<Vehicle> vehicles, TaskSet tasks) {
-    	//TODO: implement SLS algorithm
-    	
     	// select initial solution
     	Solution A = new Solution(vehicles, tasks);
     	
     	int iteration = 0;
     	int maxNumberOfIterations = 100000;
-    	double p = 0.5;  // best [0.3, 0.5]
+    	double p = 1.0;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
     	long current_time = System.currentTimeMillis();
@@ -298,28 +300,4 @@ public class CentralizedTemplate implements CentralizedBehavior {
         return plan;
     }
 
-    private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
-        City current = vehicle.getCurrentCity();
-        Plan plan = new Plan(current);
-
-        for (Task task : tasks) {
-            // move: current city => pickup location
-            for (City city : current.pathTo(task.pickupCity)) {
-                plan.appendMove(city);
-            }
-
-            plan.appendPickup(task);
-
-            // move: pickup location => delivery location
-            for (City city : task.path()) {
-                plan.appendMove(city);
-            }
-
-            plan.appendDelivery(task);
-
-            // set current city
-            current = task.deliveryCity;
-        }
-        return plan;
-    }
 }
