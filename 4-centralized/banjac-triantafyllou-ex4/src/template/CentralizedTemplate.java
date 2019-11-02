@@ -91,26 +91,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		 */
 		List<Solution> N = new ArrayList<Solution>();
 		
-		// vehicle vi has task
-		Vehicle vi;
-//		do {
-//			int randNum = random.nextInt(Aold.variables.keySet().size()-1);
-//			vi = Aold.getVehicles().get(randNum);
-//		} while (Aold.variables.get(vi).size() == 0);
-		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
-		vi = Aold.getVehicles().get(randNum);
-		
 		//TODO: change the more tasks from one to two
+		
+		// choose random vehicle vi
+		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
+		Vehicle vi = Aold.getVehicles().get(randNum);
 		
 		// apply the changing vehicle operator
 		for (Vehicle vj : Aold.getVehicles()) {
-			if (vi == vj) continue;
+			if (vi == vj || Aold.variables.get(vj).size() == 0) continue;
 			
-			if (Aold.variables.get(vj).size() != 0) {
-				Solution A = changeVehicle(Aold, vj, vi);
-				if (A.constraints()) N.add(A);
-			}
-			
+			Solution A = changeVehicle(Aold, vj, vi);
+			if (A.constraints()) N.add(A);
 			
 		}
 		
@@ -175,10 +167,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	v1Tasks.remove(tD);
     	
     	// add both pickup and delivery to beginning of another vehicle tasks
-    	v2Tasks.add(0, tD);
-    	v2Tasks.add(0, tP);
-//    	v2Tasks.add(tP);
-//    	v2Tasks.add(tD);
+//    	v2Tasks.add(0, tD);
+//    	v2Tasks.add(0, tP);
+    	v2Tasks.add(tP);
+    	v2Tasks.add(tD);
     	
     	A1.variables.put(v1, v1Tasks);
     	A1.variables.put(v2, v2Tasks);
@@ -242,7 +234,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	
     	int iteration = 0;
     	int maxNumberOfIterations = 100000;
-    	double p = 1;
+    	double p = 0.5;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
     	long current_time = System.currentTimeMillis();
@@ -262,7 +254,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     		iteration++;
     		
     		if (cost(Aold) > cost(A)) {
-				System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+				System.out.println("-Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
 	    		if (debug) {
 					System.out.println(A);
 	    		}
