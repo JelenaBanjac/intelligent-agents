@@ -37,6 +37,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     private long timeout_setup;
     private long timeout_plan;
     private static Random random = new Random(123);
+    private boolean debug = false;
     
     @Override
     public void setup(Topology topology, TaskDistribution distribution,
@@ -92,22 +93,35 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		
 		// vehicle vi has task
 		Vehicle vi;
-		do {
-			int randNum = random.nextInt(Aold.variables.keySet().size()-1);
-			vi = Aold.getVehicles().get(randNum);
-		} while (Aold.variables.get(vi).size() == 0);
+//		do {
+//			int randNum = random.nextInt(Aold.variables.keySet().size()-1);
+//			vi = Aold.getVehicles().get(randNum);
+//		} while (Aold.variables.get(vi).size() == 0);
+		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
+		vi = Aold.getVehicles().get(randNum);
 		
 		//TODO: change the more tasks from one to two
 		
 		// apply the changing vehicle operator
 		for (Vehicle vj : Aold.getVehicles()) {
-			if (vj == vi) continue;
-			PDTask t = Aold.variables.get(vi).get(0);
+			if (vi == vj) continue;
 			
-			Solution A = changeVehicle(Aold, vi, vj);
+			if (Aold.variables.get(vj).size() != 0) {
+				Solution A = changeVehicle(Aold, vj, vi);
+				if (A.constraints()) N.add(A);
+			}
 			
-			if (A.constraints()) N.add(A);
+			
 		}
+		
+//		if (N.size() > 0) {
+//			System.out.println("%%%%%%%%%%%%");
+//			System.out.println(cost(Aold));
+//			for (Solution A : N) {
+//				System.out.println(cost(A));
+//			}
+//			System.out.println("%%%%%%%%%%%");
+//		}
 		
 		//TODO: more tasks to change the order, not only 2
 		
@@ -127,6 +141,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				}
 			}
 		}
+		
+//		if (N.size() > 0) {
+//			System.out.println("++++++++++++");
+//			System.out.println(cost(Aold));
+//			List<Double> costs = new ArrayList<Double>();
+//			for (Solution A : N) {
+//				costs.add(cost(A));
+//			}
+//			Collections.sort(costs);
+//			System.out.println(costs);
+//			System.out.println("++++++++++++");
+//		}
 			
 		return N;
 	}
@@ -141,18 +167,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	List<PDTask> v1Tasks = new ArrayList<PDTask>(A1.variables.get(v1));
     	List<PDTask> v2Tasks = new ArrayList<PDTask>(A1.variables.get(v2));
     	
+    	int randNum = random.nextInt(A.variables.keySet().size()-1);
     	
-    	PDTask tP = A1.variables.get(v1).get(0);
-    	PDTask tD = new PDTask(tP.getTask(), Type.DELIVER);
-    	List<PDTask> toRemove = new ArrayList<PDTask>();
-    	toRemove.add(tP);
-    	toRemove.add(tD);
-    	// remove pickup & delivery
-    	v1Tasks.removeAll(toRemove);
+    	PDTask tP = A1.variables.get(v1).get(0);  // was 0
+    	PDTask tD = A1.findPairTask(v1, tP); 
+    	v1Tasks.remove(tP);
+    	v1Tasks.remove(tD);
     	
     	// add both pickup and delivery to beginning of another vehicle tasks
     	v2Tasks.add(0, tD);
     	v2Tasks.add(0, tP);
+//    	v2Tasks.add(tP);
+//    	v2Tasks.add(tD);
     	
     	A1.variables.put(v1, v1Tasks);
     	A1.variables.put(v2, v2Tasks);
@@ -181,14 +207,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	
     	//TODO: evaluate the best neighbor Anew or the random naighbor with prob p (not the old A)
     	
+    	double minCost = 1000000.0;
     	for (Solution solution : N) {
-    		if (Anew == null || cost(solution) < cost(Anew) ) {
+    		if (Anew == null || cost(solution) < minCost ) {
+//    			System.out.println("----");
+//    			System.out.println(Anew);
     			Anew = new Solution(solution);
+    			minCost = cost(solution);
     		}
     	}
-//    	System.out.println("A " + cost(A));
-//    	System.out.println("Anew " + cost(Anew));
-    	
+
     	if (Anew != null && random.nextFloat() < p) {
     		return Anew;
     	} else {
@@ -217,7 +245,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	double p = 1;
     	
     	long start_time = System.currentTimeMillis();
-    	long current_time;
+    	long current_time = System.currentTimeMillis();
+    	
+    	System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+		if (debug) {
+			System.out.println(A);
+		}
     	
     	do {
 			Solution Aold = new Solution(A);
@@ -227,6 +260,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			current_time = System.currentTimeMillis();
 			
     		iteration++;
+    		
+    		if (cost(Aold) > cost(A)) {
+				System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+	    		if (debug) {
+					System.out.println(A);
+	    		}
+			}
 		} while (iteration < maxNumberOfIterations && (current_time-start_time + 1000) < timeout_plan);
     	
     	System.out.println("Number of iterations " + iteration);

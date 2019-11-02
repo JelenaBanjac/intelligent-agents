@@ -64,6 +64,20 @@ public class Solution {
 		}
 	}
 	
+	
+	@Override
+	public String toString() {
+		String retVal = "Solution: \n";
+		for (Vehicle v : variables.keySet()) {
+			retVal += "\t vehicleId=" + v.id() + "\n";
+			for (PDTask task : variables.get(v)) {
+				retVal += "\t\t" + "task" + task.getTask().id + " " + task.getType() + "\n";
+			}
+		}
+		retVal += "\n";
+		return retVal;
+	}
+
 	public List<Vehicle> getVehicles() {
 		List<Vehicle> vehicles = new ArrayList<Vehicle>();
 		
