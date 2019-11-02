@@ -73,52 +73,61 @@ public class Solution {
 		return vehicles;
 	}
 	
-	public double vehicleTasksWeight(List<PDTask> tasks) {
-		double totalWeight = 0.0;
+	public boolean exceedesVehicleCapacity(Vehicle vehicle, List<PDTask> tasks) {
+		double currentWeight = 0.0;
 		
 		for (PDTask task : tasks) {
-			totalWeight += task.getTask().weight;
+			double currentTaskWeight = task.getTask().weight;
+			
+			if (task.getType() == Type.PICKUP) {
+				
+				currentWeight += currentTaskWeight;
+				
+				if (currentWeight > vehicle.capacity())
+					return true;
+			} else {
+				currentWeight -= currentTaskWeight;
+			}
 		}
 		
-		return totalWeight;
+		return false;
 	}
 	
-	private List<Task> getTasksOnly(List<PDTask> pdtasks) {
-		List<Task> tasks = new ArrayList<Task>();
-		
-		for (PDTask pdtask : pdtasks) {
-			tasks.add(pdtask.getTask());
+	public PDTask findPairTask(Vehicle vehicle, PDTask task1) {
+		for (PDTask task : this.variables.get(vehicle)) {
+			if (task1.getTask() == task.getTask()) {
+				if (task1.getType() == task.getType()) continue;
+				else {
+					return task;
+				}
+			}
 		}
-		return tasks;
+		return null;
 	}
-	
-	
 	
 	public boolean constraints() {
 		//TODO: check constraints
-		
-		int totalTasks = 0;
-		for (List<PDTask> vehicleTasks : this.variables.values()) {
-			totalTasks += vehicleTasks.size();
-		}
-
-		// it is even number of tasks since we need to have them PICKEDUP and DELIVERED
-		if (totalTasks % 2 != 0) {
-			return false;
-		}
-		
 		for (Vehicle vehicle : this.variables.keySet()) {
 			List<PDTask> vehiclePDTasks = this.variables.get(vehicle);
-			List<Task> vehicleTasks = getTasksOnly(vehiclePDTasks);
 			
 			// if vehicle cannot handle all the tasks it carries
-			if (vehicleTasksWeight(vehiclePDTasks) > vehicle.capacity()) {
+			if (exceedesVehicleCapacity(vehicle, vehiclePDTasks)) {
+				
 				return false;
 			}
 						
-			for (Task task : vehicleTasks) {
-				int tp = vehiclePDTasks.indexOf(new PDTask(task, Type.PICKUP));
-				int td = vehiclePDTasks.indexOf(new PDTask(task, Type.DELIVER));
+			for (PDTask task : vehiclePDTasks) {
+				PDTask pairTask = findPairTask(vehicle, task);
+				
+				int tp;
+				int td;
+				if (task.getType() == Type.PICKUP) {
+					tp = vehiclePDTasks.indexOf(task);
+					td = vehiclePDTasks.indexOf(pairTask);
+				} else {
+					tp = vehiclePDTasks.indexOf(pairTask);
+					td = vehiclePDTasks.indexOf(task);
+				}
 				
 				// if there is no corresponding pickup/delivery of the task
 				if (tp == -1 || td == -1) {

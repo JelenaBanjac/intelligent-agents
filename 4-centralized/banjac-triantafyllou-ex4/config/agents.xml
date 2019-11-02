@@ -9,4 +9,9 @@
 		<set class-name="template.CentralizedTemplate"/>
 	</agent>
 	
+	<agent name="centralized-main">
+		<set class-path="bin/"/>
+		<set class-name="template.CentralizedTemplate"/>
+	</agent>
+	
 </agents>
