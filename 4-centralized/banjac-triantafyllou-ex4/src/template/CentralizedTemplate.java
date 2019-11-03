@@ -110,20 +110,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				if (Anew.constraints()) N.add(Anew);
 				
 				// apply the changing task order operator
-				int numTasks = Anew.variables.get(vi).size();
-				if (numTasks >= 4) {
-					for (int tIdx1 = 0; tIdx1 < numTasks-1; tIdx1++) {
-						for (int tIdx2 = tIdx1+1; tIdx2 < numTasks; tIdx2++) {
-							PDTask t1 = Anew.variables.get(vi).get(tIdx1);
-							PDTask t2 = Anew.variables.get(vi).get(tIdx2);
-							
-							Solution A = changingTaskOrder(Anew, vi, tIdx1, tIdx2);
-							
-							if (A.constraints()) N.add(A);
-						}
-					}
-				}
-				// end
+//				int numTasks = Anew.variables.get(vi).size();
+//				if (numTasks >= 4) {
+//					for (int tIdx1 = 0; tIdx1 < numTasks-1; tIdx1++) {
+//						for (int tIdx2 = tIdx1+1; tIdx2 < numTasks; tIdx2++) {
+//							PDTask t1 = Anew.variables.get(vi).get(tIdx1);
+//							PDTask t2 = Anew.variables.get(vi).get(tIdx2);
+//							
+//							Solution A = changingTaskOrder(Anew, vi, tIdx1, tIdx2);
+//							
+//							if (A.constraints()) N.add(A);
+//						}
+//					}
+//				}
+//				// end
 				
 			}
 			
@@ -141,13 +141,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 						if (Anew.constraints()) N.add(Anew);
 						
 						// apply the changing vehicle operator
-						for (Vehicle vj : Anew.getVehicles()) {
-							if (vi == vj || Anew.variables.get(vj).size() == 0) continue;
-							
-							Solution A = changeVehicle(Anew, vj, vi);
-						
-							if (A.constraints()) N.add(A);
-						}
+//						for (Vehicle vj : Anew.getVehicles()) {
+//							if (vi == vj || Anew.variables.get(vj).size() == 0) continue;
+//							
+//							Solution A = changeVehicle(Anew, vj, vi);
+//						
+//							if (A.constraints()) N.add(A);
+//						}
 						// end
 							
 					}
@@ -169,9 +169,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	List<PDTask> v1Tasks = new ArrayList<PDTask>(A1.variables.get(v1));
     	List<PDTask> v2Tasks = new ArrayList<PDTask>(A1.variables.get(v2));
     	
-    	int randNum = random.nextInt(A.variables.keySet().size()-1);
+    	int idx = 0; //random.nextInt(A.variables.keySet().size()-1);
     	
-    	PDTask tP = A1.variables.get(v1).get(0);  // was 0
+    	PDTask tP = A1.variables.get(v1).get(idx); 
     	PDTask tD = A1.findPairTask(v1, tP); 
     	v1Tasks.remove(tP);
     	v1Tasks.remove(tD);
@@ -204,6 +204,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	return A1;
     }
     
+    private void printCostSolutions(HashMap<Double, List<Solution>> costSolutions) {
+    	for (double k : costSolutions.keySet()) {
+    		System.out.println(k + " " + costSolutions.get(k).size());
+    	}
+    	System.out.println(costSolutions.keySet().size());
+    }
+    
     private Solution localChoice(List<Solution> N, Solution A, double p) {
     	Solution Anew = null;
     	
@@ -217,16 +224,14 @@ public class CentralizedTemplate implements CentralizedBehavior {
     			double key = cost(solution);
     			List<Solution> values = costSolutions.get(key);
     			if (values == null) {
-    				values = new ArrayList<Solution>();
-    				values.add(solution);
-    				costSolutions.put(key, values);
-    			} else {
-    				values.add(solution);
-    				costSolutions.put(key, values);
-    			}
+    				values = new ArrayList<Solution>(); 
+    			} 
+    			values.add(solution);
+    			costSolutions.put(key, values);
     		}
     	}
     	
+    	if (debug) printCostSolutions(costSolutions);
     	
     	Set<Double> ks = costSolutions.keySet();
     	if (ks.size() > 0) {
@@ -234,22 +239,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
     		// get random best solution
 	    	List<Solution> bestSolutions = costSolutions.get(minCost);
 	    	
-	    	if (bestSolutions.size() > 1) {
-		    	int randNum = random.nextInt(bestSolutions.size()-1);
-		    	Anew = bestSolutions.get(randNum);
-	    	} else {
-	    		Anew = bestSolutions.get(0);
-	    	}
+	    	int idx = bestSolutions.size() > 1 ? random.nextInt(bestSolutions.size()-1) : 0; 
+	    	Anew = bestSolutions.get(idx);
     	} 
 
     	if (Anew != null && random.nextFloat() < p) {
     		return Anew;
     	} else {
-    		// return A;
     		if (ks.size() > 0) {
     			Object[] keys = ks.toArray();
-    			
-    			return costSolutions.get(keys[0]).get(0);
+    			int r1 = 0; //keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
+    			return costSolutions.get(keys[r1]).get(r2);
     		}
     		return A;
     	}
@@ -270,7 +271,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Solution A = new Solution(vehicles, tasks);
     	
     	int iteration = 0;
-    	int maxNumberOfIterations = 100000;
+    	int maxNumberOfIterations = 100;
     	double p = 0.1;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
