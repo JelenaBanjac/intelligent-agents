@@ -99,14 +99,31 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		// choose random vehicle vi
 //		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
 //		Vehicle vi = Aold.getVehicles().get(randNum);
+		
 		for (Vehicle vi : Aold.getVehicles()) {
 		
 			// apply the changing vehicle operator
 			for (Vehicle vj : Aold.getVehicles()) {
 				if (vi == vj || Aold.variables.get(vj).size() == 0) continue;
 				
-				Solution A = changeVehicle(Aold, vj, vi);
-				if (A.constraints()) N.add(A);
+				Solution Anew = changeVehicle(Aold, vj, vi);
+				if (Anew.constraints()) N.add(Anew);
+				
+				// apply the changing task order operator
+				int numTasks = Anew.variables.get(vi).size();
+				if (numTasks >= 4) {
+					for (int tIdx1 = 0; tIdx1 < numTasks-1; tIdx1++) {
+						for (int tIdx2 = tIdx1+1; tIdx2 < numTasks; tIdx2++) {
+							PDTask t1 = Anew.variables.get(vi).get(tIdx1);
+							PDTask t2 = Anew.variables.get(vi).get(tIdx2);
+							
+							Solution A = changingTaskOrder(Anew, vi, tIdx1, tIdx2);
+							
+							if (A.constraints()) N.add(A);
+						}
+					}
+				}
+				// end
 				
 			}
 			
@@ -120,12 +137,23 @@ public class CentralizedTemplate implements CentralizedBehavior {
 						PDTask t1 = Aold.variables.get(vi).get(tIdx1);
 						PDTask t2 = Aold.variables.get(vi).get(tIdx2);
 						
-						Solution A = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
+						Solution Anew = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
+						if (Anew.constraints()) N.add(Anew);
 						
-						if (A.constraints()) N.add(A);
+						// apply the changing vehicle operator
+						for (Vehicle vj : Anew.getVehicles()) {
+							if (vi == vj || Anew.variables.get(vj).size() == 0) continue;
+							
+							Solution A = changeVehicle(Anew, vj, vi);
+						
+							if (A.constraints()) N.add(A);
+						}
+						// end
+							
 					}
 				}
-			}
+			}	
+			
 		}
 			
 		return N;
@@ -243,7 +271,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	
     	int iteration = 0;
     	int maxNumberOfIterations = 100000;
-    	double p = 0.5;  // best [0.3, 0.5]
+    	double p = 0.1;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
     	long current_time = System.currentTimeMillis();
@@ -263,7 +291,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     		iteration++;
     		
     		if (cost(Aold) > cost(A)) {
-				System.out.println("-Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+				System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
 	    		if (debug) {
 					System.out.println(A);
 	    		}
