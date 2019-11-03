@@ -217,7 +217,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 //    	v2Tasks.add(0, tD);  // v2Tasks.add(tP);
 //    	v2Tasks.add(0, tP);  //v2Tasks.add(tD);
     	v2Tasks.add(tP);
-    	v2Tasks.add(tD);
+    	v2Tasks.add(tD); 
     	
     	A1.variables.put(v1, v1Tasks);
     	A1.variables.put(v2, v2Tasks);
