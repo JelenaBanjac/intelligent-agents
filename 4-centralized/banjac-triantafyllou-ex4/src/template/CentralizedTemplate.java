@@ -97,33 +97,33 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		//TODO: change the more tasks from one to two
 		
 		// choose random vehicle vi
-		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
-		Vehicle vi = Aold.getVehicles().get(randNum);
+//		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
+//		Vehicle vi = Aold.getVehicles().get(randNum);
+		for (Vehicle vi : Aold.getVehicles()) {
 		
-		// apply the changing vehicle operator
-		for (Vehicle vj : Aold.getVehicles()) {
-			if (vi == vj || Aold.variables.get(vj).size() == 0) continue;
+			// apply the changing vehicle operator
+			for (Vehicle vj : Aold.getVehicles()) {
+				if (vi == vj || Aold.variables.get(vj).size() == 0) continue;
+				
+				Solution A = changeVehicle(Aold, vj, vi);
+				if (A.constraints()) N.add(A);
+				
+			}
 			
-			Solution A = changeVehicle(Aold, vj, vi);
-			if (A.constraints()) N.add(A);
+			//TODO: more tasks to change the order, not only 2
 			
-		}
-		
-		//TODO: more tasks to change the order, not only 2
-		
-		// apply the changing task order operator
-		int numberOfTasksInVehicle = Aold.variables.get(vi).size();
-		if (numberOfTasksInVehicle >= 4) {
-			for (int tIdx1 = 0; tIdx1 < numberOfTasksInVehicle-1; tIdx1++) {
-				for (int tIdx2 = tIdx1+1; tIdx2 < numberOfTasksInVehicle; tIdx2++) {
-					PDTask t1 = Aold.variables.get(vi).get(tIdx1);
-					PDTask t2 = Aold.variables.get(vi).get(tIdx2);
-					
-					if (t1.getTask() == t2.getTask()) continue;
-					
-					Solution A = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
-					
-					if (A.constraints()) N.add(A);
+			// apply the changing task order operator
+			int numberOfTasksInVehicle = Aold.variables.get(vi).size();
+			if (numberOfTasksInVehicle >= 4) {
+				for (int tIdx1 = 0; tIdx1 < numberOfTasksInVehicle-1; tIdx1++) {
+					for (int tIdx2 = tIdx1+1; tIdx2 < numberOfTasksInVehicle; tIdx2++) {
+						PDTask t1 = Aold.variables.get(vi).get(tIdx1);
+						PDTask t2 = Aold.variables.get(vi).get(tIdx2);
+						
+						Solution A = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
+						
+						if (A.constraints()) N.add(A);
+					}
 				}
 			}
 		}
@@ -149,10 +149,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	v1Tasks.remove(tD);
     	
     	// add both pickup and delivery to beginning of another vehicle tasks
-//    	v2Tasks.add(0, tD);
-//    	v2Tasks.add(0, tP);
-    	v2Tasks.add(tP);
-    	v2Tasks.add(tD);
+    	v2Tasks.add(0, tD);
+    	v2Tasks.add(0, tP);
+//    	v2Tasks.add(tP);
+//    	v2Tasks.add(tD);
     	
     	A1.variables.put(v1, v1Tasks);
     	A1.variables.put(v2, v2Tasks);
@@ -199,6 +199,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     		}
     	}
     	
+    	
     	Set<Double> ks = costSolutions.keySet();
     	if (ks.size() > 0) {
     		minCost = Collections.min(ks);
@@ -216,6 +217,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	if (Anew != null && random.nextFloat() < p) {
     		return Anew;
     	} else {
+    		// return A;
+    		if (ks.size() > 0) {
+    			Object[] keys = ks.toArray();
+    			
+    			return costSolutions.get(keys[0]).get(0);
+    		}
     		return A;
     	}
     }
@@ -236,7 +243,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	
     	int iteration = 0;
     	int maxNumberOfIterations = 100000;
-    	double p = 1.0;  // best [0.3, 0.5]
+    	double p = 0.5;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
     	long current_time = System.currentTimeMillis();
