@@ -86,6 +86,43 @@ public class CentralizedTemplate implements CentralizedBehavior {
         return plans;
     }
     
+    private List<Solution> chooseNeighborsRandomVehicle(Solution Aold) {
+		/**
+		 * In each iteration, we choose one vehicle at random and perform 
+		 * local operators on this vehicle to compute the neighbor solutions.
+		 */
+		List<Solution> N = new ArrayList<Solution>();
+
+		// choose random vehicle vi
+		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
+		Vehicle vi = Aold.getVehicles().get(randNum);
+		
+		
+		// apply the changing vehicle operator
+		for (Vehicle vj : Aold.getVehicles()) {
+			if (vi == vj || Aold.variables.get(vj).size() == 0) continue;
+			
+			Solution Anew = changeVehicle(Aold, vj, vi);
+			if (Anew.constraints()) N.add(Anew);
+		}
+
+		// apply the changing task order operator
+		int numberOfTasksInVehicle = Aold.variables.get(vi).size();
+		if (numberOfTasksInVehicle >= 4) {
+			for (int tIdx1 = 0; tIdx1 < numberOfTasksInVehicle-1; tIdx1++) {
+				for (int tIdx2 = tIdx1+1; tIdx2 < numberOfTasksInVehicle; tIdx2++) {
+					PDTask t1 = Aold.variables.get(vi).get(tIdx1);
+					PDTask t2 = Aold.variables.get(vi).get(tIdx2);
+					
+					Solution Anew = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
+					if (Anew.constraints()) N.add(Anew);						
+				}
+			}
+		}	
+			
+		return N;
+	}
+    
     
     private List<Solution> chooseNeighbors(Solution Aold) {
 		/**
@@ -110,20 +147,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				if (Anew.constraints()) N.add(Anew);
 				
 				// apply the changing task order operator
-//				int numTasks = Anew.variables.get(vi).size();
+//				int numTasks = Aold.variables.get(vi).size();
 //				if (numTasks >= 4) {
 //					for (int tIdx1 = 0; tIdx1 < numTasks-1; tIdx1++) {
 //						for (int tIdx2 = tIdx1+1; tIdx2 < numTasks; tIdx2++) {
-//							PDTask t1 = Anew.variables.get(vi).get(tIdx1);
-//							PDTask t2 = Anew.variables.get(vi).get(tIdx2);
+//							PDTask t1 = Aold.variables.get(vi).get(tIdx1);
+//							PDTask t2 = Aold.variables.get(vi).get(tIdx2);
 //							
-//							Solution A = changingTaskOrder(Anew, vi, tIdx1, tIdx2);
+//							Solution A = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
 //							
 //							if (A.constraints()) N.add(A);
 //						}
 //					}
 //				}
-//				// end
+				// end
 				
 			}
 			
@@ -177,10 +214,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	v1Tasks.remove(tD);
     	
     	// add both pickup and delivery to beginning of another vehicle tasks
-    	v2Tasks.add(0, tD);
-    	v2Tasks.add(0, tP);
-//    	v2Tasks.add(tP);
-//    	v2Tasks.add(tD);
+    	v2Tasks.add(0, tD);  // v2Tasks.add(tP);
+    	v2Tasks.add(0, tP);  //v2Tasks.add(tD);
     	
     	A1.variables.put(v1, v1Tasks);
     	A1.variables.put(v2, v2Tasks);
@@ -271,7 +306,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Solution A = new Solution(vehicles, tasks);
     	
     	int iteration = 0;
-    	int maxNumberOfIterations = 100;
+    	int maxNumberOfIterations = 10000;
     	double p = 0.1;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
@@ -284,7 +319,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	
     	do {
 			Solution Aold = new Solution(A);
-			List<Solution> N = chooseNeighbors(Aold);
+			List<Solution> N = chooseNeighbors(Aold); //chooseNeighborsRandomVehicle(Aold);
 			A = localChoice(N, A, p);
 			
 			current_time = System.currentTimeMillis();
