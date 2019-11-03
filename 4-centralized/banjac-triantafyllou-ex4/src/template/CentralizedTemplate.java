@@ -214,8 +214,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	v1Tasks.remove(tD);
     	
     	// add both pickup and delivery to beginning of another vehicle tasks
-    	v2Tasks.add(0, tD);  // v2Tasks.add(tP);
-    	v2Tasks.add(0, tP);  //v2Tasks.add(tD);
+//    	v2Tasks.add(0, tD);  // v2Tasks.add(tP);
+//    	v2Tasks.add(0, tP);  //v2Tasks.add(tD);
+    	v2Tasks.add(tP);
+    	v2Tasks.add(tD);
     	
     	A1.variables.put(v1, v1Tasks);
     	A1.variables.put(v2, v2Tasks);
@@ -301,37 +303,76 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	return cost;
     }
     
+    public Solution findMinCostSolution(List<Solution> solutions) {
+    	Solution minS = null;
+    	
+    	for (Solution s : solutions) {
+    		if (minS == null || cost(s) < cost(minS)) {
+    			minS = s;
+    		}
+    	}
+    	
+    	return minS;
+    }
+    
     public Solution SLS(List<Vehicle> vehicles, TaskSet tasks) {
     	// select initial solution
-    	Solution A = new Solution(vehicles, tasks);
+    	List<Solution> newSolutions = new ArrayList<Solution>();
+    	List<Solution> oldSolutions = new ArrayList<Solution>();
+    	oldSolutions.add(new Solution(vehicles, tasks));
+    	oldSolutions.add(new Solution(vehicles, tasks));
+    	oldSolutions.add(new Solution(vehicles, tasks));
+    	
     	
     	int iteration = 0;
     	int maxNumberOfIterations = 10000;
-    	double p = 0.1;  // best [0.3, 0.5]
+    	double p = 0.25;  // best [0.3, 0.5] 0.25
     	
     	long start_time = System.currentTimeMillis();
     	long current_time = System.currentTimeMillis();
     	
-    	System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+    	System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(oldSolutions.get(0)));
 		if (debug) {
-			System.out.println(A);
+			System.out.println(oldSolutions.get(0));
 		}
     	
+		Solution A = null;
     	do {
-			Solution Aold = new Solution(A);
-			List<Solution> N = chooseNeighbors(Aold); //chooseNeighborsRandomVehicle(Aold);
-			A = localChoice(N, A, p);
-			
+    		// Create neighbors for all solutions
+    		List<Solution> neighbors = new ArrayList<Solution>();
+    		for (Solution S : oldSolutions) {
+    			Solution Aold = new Solution(S);
+    			List<Solution> N = chooseNeighbors(Aold); //chooseNeighborsRandomVehicle(Aold);//
+    			neighbors.addAll(N);
+    		}
+    		
+    		// Choose n best solutions
+    		newSolutions.clear();
+    		for (int i = 0; i < oldSolutions.size(); i++) {
+    			Solution s = localChoice(neighbors, findMinCostSolution(oldSolutions), p);
+    			newSolutions.add(s);
+    			neighbors.remove(s);
+    		}
+    		
+    		
 			current_time = System.currentTimeMillis();
 			
     		iteration++;
     		
-    		if (cost(Aold) > cost(A)) {
+    		
+    		//last choice
+    		A = findMinCostSolution(newSolutions);
+    		
+    		if (cost(A) < cost(findMinCostSolution(oldSolutions))) {
 				System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
 	    		if (debug) {
 					System.out.println(A);
 	    		}
 			}
+    		
+    		oldSolutions = new ArrayList<Solution>(newSolutions);
+    		
+			
 		} while (iteration < maxNumberOfIterations && (current_time-start_time + 1000) < timeout_plan);
     	
     	System.out.println("Number of iterations " + iteration);
