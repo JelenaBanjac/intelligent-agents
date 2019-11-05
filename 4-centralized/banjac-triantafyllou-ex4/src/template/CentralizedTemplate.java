@@ -331,7 +331,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Solution A = new Solution(vehicles, tasks);
     	
     	int iteration = 0;
-    	int maxNumberOfIterations = 10000;
+    	int maxNumberOfIterations = 100000;
     	double p = 0.1;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
@@ -344,7 +344,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		
 		List<Solution> rollbackSolutions = new ArrayList<Solution>();
 		int sameSolution = 0;
-		int sameSolutionLimit = 20;
+		int sameSolutionLimit = 10;
     	
     	do {
 			Solution Aold = new Solution(A);
@@ -365,7 +365,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			} else {
 				sameSolution++;
 				if (sameSolution > sameSolutionLimit) {
-					A = rollbackSolutions.get(5);
+					int randInt = random.nextInt(10);
+					A = rollbackSolutions.get(randInt);  //5
+					p = random.nextFloat();
 					System.out.println("--- rollback --- (solution cost )" + cost(A));
 				}
 			}
