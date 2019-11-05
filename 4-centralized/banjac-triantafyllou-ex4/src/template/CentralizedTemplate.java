@@ -311,7 +311,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			System.out.println(A);
 		}
 		
-		//List<Solution> rollbackSolutions = new ArrayList<Solution>();
 		HashSet<Solution> rollbackSolutions = new HashSet<Solution>();
 		int sameSolution = 0;
 		int sameSolutionLimit = 10;
