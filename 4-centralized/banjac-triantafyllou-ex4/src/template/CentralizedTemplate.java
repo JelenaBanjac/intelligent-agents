@@ -25,6 +25,7 @@ import variables.PDTask;
 import variables.PDTask.Type;
 import variables.Solution;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -284,21 +285,21 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	} else {
     		if (ks.size() > 0) {
     			//System.out.println(random.nextFloat());
-    			Object[] keys = ks.toArray();
-    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
-    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
-    			return costSolutions.get(keys[r1]).get(r2);
-//    			if (random.nextFloat() < p2) {
-//	    			Object[] keys = ks.toArray();
-//	    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
-//	    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
-//	    			return costSolutions.get(keys[r1]).get(r2);
-//    			} else {
-//    				Object[] keys = ks.toArray();
-//	    			int r1 = keys.length > 1 ? random.nextInt(keys.length-1) : 0;
-//	    			int r2 = costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
-//	    			return costSolutions.get(keys[r1]).get(r2);
-//    			}
+//    			Object[] keys = ks.toArray();
+//    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+//    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
+//    			return costSolutions.get(keys[r1]).get(r2);
+    			if (random.nextFloat() < p2) {
+	    			Object[] keys = ks.toArray();
+	    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+	    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
+	    			return costSolutions.get(keys[r1]).get(r2);
+    			} else {
+    				Object[] keys = ks.toArray();
+	    			int r1 = keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+	    			int r2 = costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
+	    			return costSolutions.get(keys[r1]).get(r2);
+    			}
     		}
     		return A;
     	}
@@ -314,7 +315,19 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	return cost;
     }
     
-    public Solution getBestSolution(List<Solution> solutions) {
+//    public Solution getBestSolution(List<Solution> solutions) {
+//    	double minCost = 10000000.0;
+//    	Solution bestSolution = null;
+//    	for (Solution s : solutions) {
+//    		if (cost(s) < minCost) {
+//    			minCost = cost(s);
+//    			bestSolution = s;
+//    		}
+//    	}
+//    	return bestSolution;
+//    }
+    
+    public Solution getBestSolution(HashSet<Solution> solutions) {
     	double minCost = 10000000.0;
     	Solution bestSolution = null;
     	for (Solution s : solutions) {
@@ -325,6 +338,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	}
     	return bestSolution;
     }
+    
+    private Solution getRandomObject(HashSet<Solution> from) {
+	   Random rnd = new Random();
+	   int i = rnd.nextInt(from.size());
+	   return (Solution) from.toArray()[i];
+	}
     
     public Solution SLS(List<Vehicle> vehicles, TaskSet tasks) {
     	// select initial solution
@@ -342,7 +361,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			System.out.println(A);
 		}
 		
-		List<Solution> rollbackSolutions = new ArrayList<Solution>();
+		//List<Solution> rollbackSolutions = new ArrayList<Solution>();
+		HashSet<Solution> rollbackSolutions = new HashSet<Solution>();
 		int sameSolution = 0;
 		int sameSolutionLimit = 10;
     	
@@ -366,12 +386,14 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				sameSolution++;
 				if (sameSolution > sameSolutionLimit) {
 					int randInt = random.nextInt(10);
-					A = rollbackSolutions.get(randInt);  //5
+					//A = rollbackSolutions.get(randInt);  //5
+					A = getRandomObject(rollbackSolutions);
 					p = random.nextFloat();
 					System.out.println("--- rollback --- (solution cost )" + cost(A));
 				}
 			}
 		} while (iteration < maxNumberOfIterations && (current_time-start_time + 1000) < timeout_plan);
+    	
     	
     	A = getBestSolution(rollbackSolutions);
     	
