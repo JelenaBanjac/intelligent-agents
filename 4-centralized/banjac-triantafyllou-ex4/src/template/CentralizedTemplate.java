@@ -278,14 +278,27 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    	Anew = bestSolutions.get(idx);
     	} 
 
+    	double p2 = 1;
     	if (Anew != null && random.nextFloat() < p) {
     		return Anew;
     	} else {
     		if (ks.size() > 0) {
+    			//System.out.println(random.nextFloat());
     			Object[] keys = ks.toArray();
-    			int r1 = 0; //keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
     			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
     			return costSolutions.get(keys[r1]).get(r2);
+//    			if (random.nextFloat() < p2) {
+//	    			Object[] keys = ks.toArray();
+//	    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+//	    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
+//	    			return costSolutions.get(keys[r1]).get(r2);
+//    			} else {
+//    				Object[] keys = ks.toArray();
+//	    			int r1 = keys.length > 1 ? random.nextInt(keys.length-1) : 0;
+//	    			int r2 = costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
+//	    			return costSolutions.get(keys[r1]).get(r2);
+//    			}
     		}
     		return A;
     	}
@@ -299,6 +312,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	}
     	
     	return cost;
+    }
+    
+    public Solution getBestSolution(List<Solution> solutions) {
+    	double minCost = 10000000.0;
+    	Solution bestSolution = null;
+    	for (Solution s : solutions) {
+    		if (cost(s) < minCost) {
+    			minCost = cost(s);
+    			bestSolution = s;
+    		}
+    	}
+    	return bestSolution;
     }
     
     public Solution SLS(List<Vehicle> vehicles, TaskSet tasks) {
@@ -316,6 +341,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		if (debug) {
 			System.out.println(A);
 		}
+		
+		List<Solution> rollbackSolutions = new ArrayList<Solution>();
+		int sameSolution = 0;
+		int sameSolutionLimit = 20;
     	
     	do {
 			Solution Aold = new Solution(A);
@@ -331,8 +360,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	    		if (debug) {
 					System.out.println(A);
 	    		}
+	    		rollbackSolutions.add(A);
+	    		sameSolution = 0;
+			} else {
+				sameSolution++;
+				if (sameSolution > sameSolutionLimit) {
+					A = rollbackSolutions.get(5);
+					System.out.println("--- rollback --- (solution cost )" + cost(A));
+				}
 			}
 		} while (iteration < maxNumberOfIterations && (current_time-start_time + 1000) < timeout_plan);
+    	
+    	A = getBestSolution(rollbackSolutions);
     	
     	System.out.println("Number of iterations " + iteration);
     	System.out.println("Solution cost " + cost(A));
