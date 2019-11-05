@@ -134,10 +134,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		
 		//TODO: change the more tasks from one to two
 		
-		// choose random vehicle vi
-//		int randNum = random.nextInt(Aold.variables.keySet().size()-1);
-//		Vehicle vi = Aold.getVehicles().get(randNum);
-		
 		for (Vehicle vi : Aold.getVehicles()) {
 		
 			// apply the changing vehicle operator
@@ -148,19 +144,19 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				if (Anew.constraints()) N.add(Anew);
 				
 				// apply the changing task order operator
-//				int numTasks = Aold.variables.get(vi).size();
-//				if (numTasks >= 4) {
-//					for (int tIdx1 = 0; tIdx1 < numTasks-1; tIdx1++) {
-//						for (int tIdx2 = tIdx1+1; tIdx2 < numTasks; tIdx2++) {
-//							PDTask t1 = Aold.variables.get(vi).get(tIdx1);
-//							PDTask t2 = Aold.variables.get(vi).get(tIdx2);
-//							
-//							Solution A = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
-//							
-//							if (A.constraints()) N.add(A);
-//						}
-//					}
-//				}
+				int numTasks = Aold.variables.get(vi).size();
+				if (numTasks >= 4) {
+					for (int tIdx1 = 0; tIdx1 < numTasks-1; tIdx1++) {
+						for (int tIdx2 = tIdx1+1; tIdx2 < numTasks; tIdx2++) {
+							PDTask t1 = Aold.variables.get(vi).get(tIdx1);
+							PDTask t2 = Aold.variables.get(vi).get(tIdx2);
+							
+							Solution A = changingTaskOrder(Aold, vi, tIdx1, tIdx2);
+							
+							if (A.constraints()) N.add(A);
+						}
+					}
+				}
 				// end
 				
 			}
@@ -179,13 +175,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 						if (Anew.constraints()) N.add(Anew);
 						
 						// apply the changing vehicle operator
-//						for (Vehicle vj : Anew.getVehicles()) {
-//							if (vi == vj || Anew.variables.get(vj).size() == 0) continue;
-//							
-//							Solution A = changeVehicle(Anew, vj, vi);
-//						
-//							if (A.constraints()) N.add(A);
-//						}
+						for (Vehicle vj : Anew.getVehicles()) {
+							if (vi == vj || Anew.variables.get(vj).size() == 0) continue;
+							
+							Solution A = changeVehicle(Anew, vj, vi);
+						
+							if (A.constraints()) N.add(A);
+						}
 						// end
 							
 					}
@@ -335,7 +331,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				sameSolution++;
 				if (sameSolution > sameSolutionLimit) {
 					int randInt = random.nextInt(10);
-					//A = rollbackSolutions.get(randInt);  //5
 					A = getRandomObject(rollbackSolutions);
 					p = random.nextFloat();
 					System.out.println("--- rollback --- (solution cost )" + cost(A));
