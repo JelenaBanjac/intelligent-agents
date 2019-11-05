@@ -248,61 +248,23 @@ public class CentralizedTemplate implements CentralizedBehavior {
     }
     
     private Solution localChoice(List<Solution> N, Solution A, double p) {
-    	Solution Anew = null;
+    	Solution Anew = A;
+    	double bestCost = cost(A);
     	
-    	//TODO: evaluate the best neighbor Anew or the random naighbor with prob p (not the old A)
-    	
-    	double minCost = 1000000.0;
-
-    	HashMap<Double, List<Solution>> costSolutions = new HashMap<Double, List<Solution>>();
-    	for (Solution solution : N) {
-    		if (cost(solution) < cost(A) ) {
-    			double key = cost(solution);
-    			List<Solution> values = costSolutions.get(key);
-    			if (values == null) {
-    				values = new ArrayList<Solution>(); 
-    			} 
-    			values.add(solution);
-    			costSolutions.put(key, values);
-    		}
-    	}
-    	
-    	if (debug) printCostSolutions(costSolutions);
-    	
-    	Set<Double> ks = costSolutions.keySet();
-    	if (ks.size() > 0) {
-    		minCost = Collections.min(ks);
-    		// get random best solution
-	    	List<Solution> bestSolutions = costSolutions.get(minCost);
-	    	
-	    	int idx = bestSolutions.size() > 1 ? random.nextInt(bestSolutions.size()-1) : 0; 
-	    	Anew = bestSolutions.get(idx);
-    	} 
-
-    	double p2 = 1;
     	if (Anew != null && random.nextFloat() < p) {
-    		return Anew;
+	    	for (Solution s : N) {
+	    		double cost = cost(s);
+	    		if (cost <= bestCost) {
+	    			Anew = s;
+	    			bestCost = cost;
+	    		}
+	    	}
+	    	return Anew;
     	} else {
-    		if (ks.size() > 0) {
-    			//System.out.println(random.nextFloat());
-//    			Object[] keys = ks.toArray();
-//    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
-//    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
-//    			return costSolutions.get(keys[r1]).get(r2);
-    			if (random.nextFloat() < p2) {
-	    			Object[] keys = ks.toArray();
-	    			int r1 = 0;//keys.length > 1 ? random.nextInt(keys.length-1) : 0;
-	    			int r2 = 0; //costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
-	    			return costSolutions.get(keys[r1]).get(r2);
-    			} else {
-    				Object[] keys = ks.toArray();
-	    			int r1 = keys.length > 1 ? random.nextInt(keys.length-1) : 0;
-	    			int r2 = costSolutions.get(keys[r1]).size() > 1 ? random.nextInt(costSolutions.get(keys[r1]).size()-1) : 0;
-	    			return costSolutions.get(keys[r1]).get(r2);
-    			}
-    		}
-    		return A;
+    		int randInd = random.nextInt(N.size());
+    		return N.get(randInd);
     	}
+    	
     }
     
     public double cost(Solution s) {
@@ -314,18 +276,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	
     	return cost;
     }
-    
-//    public Solution getBestSolution(List<Solution> solutions) {
-//    	double minCost = 10000000.0;
-//    	Solution bestSolution = null;
-//    	for (Solution s : solutions) {
-//    		if (cost(s) < minCost) {
-//    			minCost = cost(s);
-//    			bestSolution = s;
-//    		}
-//    	}
-//    	return bestSolution;
-//    }
     
     public Solution getBestSolution(HashSet<Solution> solutions) {
     	double minCost = 10000000.0;
@@ -350,7 +300,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     	Solution A = new Solution(vehicles, tasks);
     	
     	int iteration = 0;
-    	int maxNumberOfIterations = 100000;
+    	int maxNumberOfIterations = 1000000;
     	double p = 0.1;  // best [0.3, 0.5]
     	
     	long start_time = System.currentTimeMillis();
