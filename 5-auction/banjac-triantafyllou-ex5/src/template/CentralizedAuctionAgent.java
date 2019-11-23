@@ -24,13 +24,14 @@ import variables.PDTask;
 import variables.PDTask.Type;
 import variables.Solution;
 import variables.SolutionCost;
+import logist.task.DefaultTaskDistribution;;
 
 
 @SuppressWarnings("unused")
 public class CentralizedAuctionAgent implements AuctionBehavior {
 
 	private Topology topology;
-	private TaskDistribution distribution;
+	private DefaultTaskDistribution distribution;
 	private Agent agent;
 	private Random random;
 	private Vehicle vehicle;
@@ -69,7 +70,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
         timeout_bid = ls.get(LogistSettings.TimeoutKey.BID);
         
 		this.topology = topology;
-		this.distribution = distribution;
+		this.distribution = (DefaultTaskDistribution) distribution;
 		this.agent = agent;
 		this.vehicle = agent.vehicles().get(0);
 		this.currentCity = vehicle.homeCity();
@@ -117,17 +118,17 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 	public SolutionCost computeMarginalCost() {
 		
 		solution = new Solution(getSolution(solution.getVehicles(), solution.getTasks(), timeout_bid/2));
-		//solution = new Solution();
 		
 		// naive estimator and no future
 		double currentCost = cost(solution);
 		
+		// TODO: recompute the plan on the extended solution as well
 		Solution extendedSolution = Solution.extendSolution(solution, currentTask);
+		extendedSolution = new Solution(getSolution(extendedSolution.getVehicles(), extendedSolution.getTasks(), timeout_bid/2));
+		
 		double extendedCost = cost(extendedSolution);
 		
-		double marginalCost = Math.max(0, extendedCost - currentCost);
-		
-		
+		double marginalCost = Math.max(0, extendedCost - currentCost);		
 		
 		SolutionCost solutionCost = new SolutionCost(marginalCost, extendedSolution);
 		
@@ -136,6 +137,84 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 
 		return new SolutionCost(bid, solutionCost.solution);  //(long) Math.round(bid);
 	}
+	
+	
+	public SolutionCost computeMarginalCost_advanced() {
+		
+		// ********
+		solution = new Solution(getSolution(solution.getVehicles(), solution.getTasks(), timeout_bid/2));
+
+		// estimate without future
+		double currentCost = cost(solution);
+		
+		// TODO: recompute the plan on the extended solution as well
+		Solution extendedSolution = Solution.extendSolution(solution, currentTask);
+		double extendedCost = cost(extendedSolution);
+		
+		double marginalCost = Math.max(0, extendedCost - currentCost);		
+		// *********
+		
+		// using extendedSolution, marginalCost
+		double minTasks = 5;
+		int numPredictions = 10;
+		double risk = 0.7;
+		
+		long start_time = System.currentTimeMillis();
+		SolutionCost solutionCost = new SolutionCost(marginalCost, extendedSolution);
+		
+		if (extendedSolution.getTasks().size() >= minTasks || solutionCost.marginalCost == 0) {
+			return solutionCost;
+		}
+		
+		long middle_time = System.currentTimeMillis();
+		long timeout = timeout_bid;
+		timeout -= (middle_time - start_time);
+		long time_share = (long) ((timeout * 0.95)/numPredictions);
+		
+		// compute estimations
+		double worsePredictionCost = Double.NEGATIVE_INFINITY;
+		double bestPredictionCost = Double.POSITIVE_INFINITY;
+		double sum = 0;
+		
+		for (int i = 0; i < numPredictions; i++) {
+			start_time = System.currentTimeMillis();
+			Solution futureSolution = new Solution(extendedSolution);
+			//System.out.println(futureSolution);
+			
+			// extend plan with random tasks
+			while (futureSolution.getTasks().size() < minTasks) {
+				futureSolution = Solution.extendSolution(futureSolution, this.distribution.createTask());
+			}
+			
+			middle_time = System.currentTimeMillis();
+			
+			// ******** futureSolution, task, timeshare-(midtime-starttime).marginalCost
+			long future_timeout = time_share - (middle_time - start_time);
+			
+			futureSolution = new Solution(getSolution(futureSolution.getVehicles(), futureSolution.getTasks(), future_timeout/2));
+
+			// estimate without future10860
+			double futureCost = cost(futureSolution);
+			
+			// TODO: recompute the plan on the extended solution as well
+			Solution extendedFutureSolution = Solution.extendSolution(futureSolution, currentTask);
+			double extendedFutureCost = cost(extendedFutureSolution);
+			
+			double prediction = Math.max(0, extendedFutureCost - futureCost);
+			// ********
+			
+			worsePredictionCost = Math.max(0, worsePredictionCost - prediction);
+			bestPredictionCost = Math.max(0, bestPredictionCost - prediction);
+			
+			sum += prediction;
+		}
+		
+		double bid = Math.min(worsePredictionCost, solutionCost.marginalCost);
+		bid = solutionCost.marginalCost - (solutionCost.marginalCost - bid) * risk;
+
+		return new SolutionCost(bid, null);  //(long) Math.round(bid);
+	}
+
 	
     public double cost(Solution s) {
     	double cost = 0.0;
@@ -151,9 +230,12 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 	public Long askPrice(Task task) {
 		currentTask = task;
 		
-		SolutionCost result = computeMarginalCost();
+		// TODO: change to advanced or default here
+		SolutionCost result = computeMarginalCost(); //computeMarginalCost_advanced();
 		newSolution = result.solution;
 		Long bid = (long) Math.ceil(result.marginalCost);
+		
+		System.out.println("Bid value " + bid);
 
 		return bid;
 	}
@@ -162,8 +244,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		// TODO: change this
 		// select initial solution
     	Solution A = new Solution(vehicles, tasks);
-    	
-    	if (A.getTasks().size() == 0) {
+    	if (A.getTasks().size() <= 1) {
     		return A;
     	}
     	
@@ -177,6 +258,9 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     	System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
 		
 		HashSet<Solution> rollbackSolutions = new HashSet<Solution>();
+		// add this solution just so it is not empty 
+		rollbackSolutions.add(A);
+		
 		int sameSolution = 0;
 		int sameSolutionLimit = 10;
     	
@@ -285,9 +369,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		 * local operators on this vehicle to compute the neighbor solutions.
 		 */
 		List<Solution> N = new ArrayList<Solution>();
-		
-		//TODO: change the more tasks from one to two
-		
+
 		for (Vehicle vi : Aold.getVehicles()) {
 		
 			// apply the changing vehicle operator
@@ -314,9 +396,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 				// end
 				
 			}
-			
-			//TODO: more tasks to change the order, not only 2
-			
+
 			// apply the changing task order operator
 			int numberOfTasksInVehicle = Aold.variables.get(vi).size();
 			if (numberOfTasksInVehicle >= 4) {
