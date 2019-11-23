@@ -75,10 +75,7 @@ public class SimpleAuctionAgent implements AuctionBehavior {
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
 		
-		//strategy = new Strategy("Naive", new NaivePlanner(agent.vehicles()), new NaiveEstimator(), new NoGain(agent.id()));
 		this.solution = new Solution(agent.vehicles());
-		//estimator = new NaiveEstimator();  // computemc
-		//bidder = new NoGain(agent.id());  // bid()
 	}
 
 	public void addBids(Long[] bids, int winnerID) {

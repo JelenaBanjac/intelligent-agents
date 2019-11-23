@@ -2,6 +2,7 @@ package variables;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import logist.simulation.Vehicle;
 import logist.task.Task;
@@ -41,6 +42,25 @@ public class Solution {
 		// initialize all vehicle tasks
 		for (Vehicle vehicle : vehicles) {
 			this.variables.put(vehicle, new ArrayList<PDTask>());
+		}
+	}
+	
+	public Solution(List<Vehicle> vehicles, List<Task> tasks) {
+		this.variables = new HashMap<Vehicle, List<PDTask>>();
+		
+		// initialize all vehicle tasks
+		for (Vehicle vehicle : vehicles) {
+			this.variables.put(vehicle, new ArrayList<PDTask>());
+		}
+		
+		// give all the tasks to the biggest vehicle (after pickup immediately deliver)
+		Vehicle biggestVehicle = biggestVehicle(vehicles);
+		for (Task task : tasks) {
+			if (task.weight > biggestVehicle.capacity()) {
+				new Exception("Problem is unsolvable!");
+			}
+			this.variables.get(biggestVehicle).add(new PDTask(task, Type.PICKUP));
+			this.variables.get(biggestVehicle).add(new PDTask(task, Type.DELIVER));
 		}
 	}
 	
@@ -108,6 +128,19 @@ public class Solution {
 			vehicles.add(vehicle);
 		}
 		return vehicles;
+	}
+	
+	public List<Task> getTasks() {
+		List<Task> tasks = new ArrayList<Task>();
+		HashSet<Task> tasksSet = new HashSet<Task>();
+		
+		for (List<PDTask> vTasks : this.variables.values()) {
+			for (PDTask task : vTasks) {
+				tasksSet.add(task.getTask());
+			} 			
+		}
+		tasks.addAll(tasksSet);
+		return tasks;
 	}
 	
 	public boolean exceedesVehicleCapacity(Vehicle vehicle, List<PDTask> tasks) {
