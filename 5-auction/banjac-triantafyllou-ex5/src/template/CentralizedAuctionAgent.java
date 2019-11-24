@@ -50,11 +50,15 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     private Long totalReward = 0l;
     private int winCount = 0;
     private int bidCount = 0;
-    
+    /** Lower bound on the number of auctioned tasks **/
 	private int minTasks = 5;
-	private int nbPredictions = 10;
-	private double riskTolerance = 0.7;
-	private double marginRatio = 0.5;
+	/** How many simulated solutions to calculate for each simulated future task **/
+	private int numPredictions = 10;
+	/** How much to risk in giving the final bid **/
+	private double riskEpsilon = 0.7;
+	/**  How much of difference between bid and marginal cost to take **/
+	private double marginEpsilon = 0.5;
+	/** Depth for getting a minimal bid from others **/
 	private int depth = 5;
     
     private Task currentTask;
@@ -175,14 +179,14 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		long middle_time = System.currentTimeMillis();
 		long timeout = timeout_bid;
 		timeout -= (middle_time - start_time);
-		long time_share = (long) ((timeout * 0.95)/nbPredictions);
+		long time_share = (long) ((timeout * 0.95)/numPredictions);
 		
 		// compute estimations
 		double worsePredictionCost = Double.NEGATIVE_INFINITY;
 		double bestPredictionCost = Double.POSITIVE_INFINITY;
 		double sum = 0;
 		
-		for (int i = 0; i < nbPredictions; i++) {
+		for (int i = 0; i < numPredictions; i++) {
 			start_time = System.currentTimeMillis();
 			Solution futureSolution = new Solution(extendedSolution);
 
@@ -211,7 +215,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		}
 		
 		double bid = Math.min(worsePredictionCost, solutionCost.getMarginalCost());
-		bid = solutionCost.getMarginalCost() - (solutionCost.getMarginalCost() - bid) * riskTolerance;
+		bid = solutionCost.getMarginalCost() - (solutionCost.getMarginalCost() - bid) * riskEpsilon;
 
 		return new SolutionCost(bid, null);
 	}
@@ -249,7 +253,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 			Long minBid = getMinBid(bidHistory.get(idx));
 
 			if (minBid > marginalCost) {
-				bid += (minBid - marginalCost) * marginRatio;
+				bid += (minBid - marginalCost) * marginEpsilon;
 			}
 
 			System.out.println("[BID] Marginal Cost = " + marginalCost + ", minimal = "+ minBid + ", final = " + bid);
