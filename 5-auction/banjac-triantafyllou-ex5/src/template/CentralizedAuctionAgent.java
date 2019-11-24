@@ -53,13 +53,13 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     /** Lower bound on the number of auctioned tasks **/
 	private int minTasks = 5;
 	/** How many simulated solutions to calculate for each simulated future task **/
-	private int numPredictions = 10;
+	private int numPredictions = 20;
 	/** How much to risk in giving the final bid **/
-	private double riskEpsilon = 0.7;
+	private double riskEpsilon = 0.9;
 	/**  How much of difference between bid and marginal cost to take **/
-	private double marginEpsilon = 0.5;
+	private double marginEpsilon = 0.8;
 	/** Depth for getting a minimal bid from others **/
-	private int depth = 5;
+	private int depth = 10;
     
     private Task currentTask;
 	public HashMap<Integer, List<Long>> bidHistory = new HashMap<>();
@@ -102,6 +102,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
+		System.out.println("...Auction results...");
 		boolean won = winner == agent.id();
 		
 		if (won) {
