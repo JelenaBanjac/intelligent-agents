@@ -30,6 +30,8 @@ import logist.task.DefaultTaskDistribution;;
 @SuppressWarnings("unused")
 public class CentralizedAuctionAgent implements AuctionBehavior {
 
+	private boolean debug = false;
+	
 	private Topology topology;
 	private DefaultTaskDistribution distribution;
 	private Agent agent;
@@ -44,14 +46,20 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     private Long totalReward = 0l;
     private int winCount = 0;
     private int bidCount = 0;
+	private int minTasks;
+	private int nbPredictions;
+	private double riskTolerance;
+    
+	private double marginRatio;
+	private int depth;
+	public int agentID;
     
     private Task currentTask;
 	public HashMap<Integer, List<Long>> bidHistory = new HashMap<>();
 	public List<Integer> winners = new ArrayList<>();
 
 	@Override
-	public void setup(Topology topology, TaskDistribution distribution,
-			Agent agent) {
+	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
 
 		// this code is used to get the timeouts
         LogistSettings ls = null;
@@ -78,7 +86,17 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
 		
+		agentID = agent.id();
+		minTasks = 5;
+		nbPredictions = 10;
+		riskTolerance = 0.7;
+		marginRatio = 0.5;
+		depth = 5;
+
+		
 		this.solution = new Solution(agent.vehicles());
+		
+		System.out.println("...SLS agent is setup...");
 	}
 
 	public void addBids(Long[] bids, int winnerID) {
@@ -109,13 +127,14 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 
 		addBids(bids, winner);
 
-		System.out.print(" bid " + bids[agent.id()] + " for num bids " + bidCount + " and ");
-		System.out.println((won ? "won" : "lost") + " [total = " + winCount + "]");
+		System.out.print("[BID] SLS agent bid " + bids[agent.id()] + " for num bids " + bidCount + " and ");
+		System.out.println((won ? "won" : "lost") + " [total = " + winCount + "]\n");
 	}
 
 
 	
 	public SolutionCost computeMarginalCost() {
+		System.out.println("...Computing marginal cost...");
 		
 		solution = new Solution(getSolution(solution.getVehicles(), solution.getTasks(), timeout_bid/2));
 		
@@ -149,16 +168,15 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		
 		// TODO: recompute the plan on the extended solution as well
 		Solution extendedSolution = Solution.extendSolution(solution, currentTask);
+		extendedSolution = new Solution(getSolution(extendedSolution.getVehicles(), extendedSolution.getTasks(), timeout_bid/2));
+		
 		double extendedCost = cost(extendedSolution);
 		
 		double marginalCost = Math.max(0, extendedCost - currentCost);		
 		// *********
 		
 		// using extendedSolution, marginalCost
-		double minTasks = 5;
-		int numPredictions = 10;
-		double risk = 0.7;
-		
+
 		long start_time = System.currentTimeMillis();
 		SolutionCost solutionCost = new SolutionCost(marginalCost, extendedSolution);
 		
@@ -169,14 +187,14 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		long middle_time = System.currentTimeMillis();
 		long timeout = timeout_bid;
 		timeout -= (middle_time - start_time);
-		long time_share = (long) ((timeout * 0.95)/numPredictions);
+		long time_share = (long) ((timeout * 0.95)/nbPredictions);
 		
 		// compute estimations
 		double worsePredictionCost = Double.NEGATIVE_INFINITY;
 		double bestPredictionCost = Double.POSITIVE_INFINITY;
 		double sum = 0;
 		
-		for (int i = 0; i < numPredictions; i++) {
+		for (int i = 0; i < nbPredictions; i++) {
 			start_time = System.currentTimeMillis();
 			Solution futureSolution = new Solution(extendedSolution);
 			//System.out.println(futureSolution);
@@ -198,6 +216,8 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 			
 			// TODO: recompute the plan on the extended solution as well
 			Solution extendedFutureSolution = Solution.extendSolution(futureSolution, currentTask);
+			extendedFutureSolution = new Solution(getSolution(extendedFutureSolution.getVehicles(), extendedFutureSolution.getTasks(), future_timeout/2));
+			
 			double extendedFutureCost = cost(extendedFutureSolution);
 			
 			double prediction = Math.max(0, extendedFutureCost - futureCost);
@@ -210,7 +230,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		}
 		
 		double bid = Math.min(worsePredictionCost, solutionCost.marginalCost);
-		bid = solutionCost.marginalCost - (solutionCost.marginalCost - bid) * risk;
+		bid = solutionCost.marginalCost - (solutionCost.marginalCost - bid) * riskTolerance;
 
 		return new SolutionCost(bid, null);  //(long) Math.round(bid);
 	}
@@ -228,22 +248,80 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     
 	@Override
 	public Long askPrice(Task task) {
+		System.out.println("...Asking price...");
 		currentTask = task;
 		
 		// TODO: change to advanced or default here
-		SolutionCost result = computeMarginalCost(); //computeMarginalCost_advanced();
+		SolutionCost result = computeMarginalCost_advanced(); //computeMarginalCost_advanced();
 		newSolution = result.solution;
-		Long bid = (long) Math.ceil(result.marginalCost);
-		
-		System.out.println("Bid value " + bid);
+		Long bid = bid(result.marginalCost); 
 
 		return bid;
+	}
+	
+	public long bid(double marginalCost) {
+
+		double bid = marginalCost;
+
+		if (winners.size() > 0) {
+			int bestAgentIndex = bestAgent(winners, bidHistory, depth, agentID);
+			Long minBid = min(bidHistory.get(bestAgentIndex), depth);
+
+			if (minBid > marginalCost) {
+				bid += (minBid - marginalCost) * marginRatio;
+			}
+
+			System.out.println("[BID] Marginal Cost = " + marginalCost + ", minimal = "+ minBid + ", final = " + bid);
+		}
+
+		return (long) Math.ceil(bid);
+	}
+	
+	public static int bestAgent(List<Integer> winners, HashMap<Integer, List<Long>> bids, int depth, int agentID) {
+		int best = 0;
+		int nbWinsBest = Integer.MIN_VALUE;
+
+		for (int id : bids.keySet()) {
+			if (id == agentID) {
+				continue;
+			}
+			int nbWins = 0;
+			for (int winner : winners) {
+				if (id == winner) {
+					nbWins++;
+				}
+			}
+
+			if (nbWins > nbWinsBest) {
+				best = id;
+				nbWinsBest = nbWins;
+			} else if (nbWins == nbWinsBest) {
+				Long minBest = min(bids.get(best), depth);
+				Long minCurrent = min(bids.get(id), depth);
+				if (minBest > minCurrent) {
+					best = id;
+				}
+			}
+		}
+
+		return best;
+	}
+	
+	public static Long min(List<Long> longs, int depth) {
+		Long min = Long.MAX_VALUE;
+		for (int i = longs.size() - 1; i >= (longs.size() - 1 - Math.min(depth, longs.size() - 1)); i--) {
+			min = Math.min(min, longs.get(i));
+		}
+
+		return min;
 	}
 	
 	public Solution getSolution(List<Vehicle> vehicles, List<Task> tasks, long timeout) {
 		// TODO: change this
 		// select initial solution
     	Solution A = new Solution(vehicles, tasks);
+    	System.out.println("...Computing SLS for "+ A.getTasks().size() +" tasks...");
+		
     	if (A.getTasks().size() <= 1) {
     		return A;
     	}
@@ -255,7 +333,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     	long start_time = System.currentTimeMillis();
     	long current_time = System.currentTimeMillis();
     	
-    	System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+    	if (debug) System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
 		
 		HashSet<Solution> rollbackSolutions = new HashSet<Solution>();
 		// add this solution just so it is not empty 
@@ -274,7 +352,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     		iteration++;
     		
     		if (cost(Aold) > cost(A)) {
-				System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
+				if (debug) System.out.println("Iteration " + iteration + " (" + (current_time-start_time) + "ms) cost " + cost(A));
 	    		
 	    		rollbackSolutions.add(A);
 	    		sameSolution = 0;
@@ -284,7 +362,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 					int randInt = random.nextInt(10);
 					A = getRandomObject(rollbackSolutions);
 					p = random.nextFloat();
-					System.out.println("--- rollback --- (solution cost )" + cost(A));
+					if (debug) System.out.println("--- rollback --- (solution cost )" + cost(A));
 				}
 			}
 		} while (iteration < maxNumberOfIterations && (current_time-start_time + 1000) < timeout);
@@ -292,13 +370,15 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     	
     	A = getBestSolution(rollbackSolutions);
     	
-    	System.out.println("Number of iterations " + iteration);
-    	System.out.println("Solution cost " + cost(A));
+    	System.out.println("\t[SLS] Number of iterations " + iteration);
+    	System.out.println("\t[SLS] Solution cost " + cost(A));
     	return A;
 	}
 	
     @Override
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
+    	System.out.println("...Making a plan...");
+    	
         long time_start = System.currentTimeMillis();
         
         ArrayList<Task> tsks = new ArrayList<Task>();
