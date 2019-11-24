@@ -14,7 +14,7 @@
 		<set class-name="template.SimpleAuctionAgent"/>
 	</agent> -->
 	
-	<agent name="auction-centralized">
+	<agent name="auction-main-70">
 		<set class-path="bin/"/>
 		<set class-name="template.CentralizedAuctionAgent"/>
 	</agent> 
