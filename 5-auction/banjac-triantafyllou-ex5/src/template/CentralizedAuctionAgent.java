@@ -107,6 +107,8 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		
 		if (won) {
 			solution = newSolution != null ? newSolution : Solution.extendSolution(solution, currentTask);
+			//TODO: recompute the solution
+			
 			newSolution = null;
 
 			totalReward += bids[winner];
@@ -120,6 +122,8 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 	}
 	
 	public void addBids(Long[] bids, int winnerID) {
+		// collect in bidHistory <agentID, hisBID>
+		
 		for (int i = 0; i < bids.length; ++i) {
 			List<Long> currenbids = bidHistory.get(i);
 			if (currenbids == null) {
@@ -184,14 +188,13 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		
 		// compute estimations
 		double worsePredictionCost = Double.NEGATIVE_INFINITY;
-		double bestPredictionCost = Double.POSITIVE_INFINITY;
-		double sum = 0;
 		
 		for (int i = 0; i < numPredictions; i++) {
 			start_time = System.currentTimeMillis();
 			Solution futureSolution = new Solution(extendedSolution);
 
 			// extend plan with random tasks
+			// if there is already 5 tasks in the solution, we skip this
 			while (futureSolution.getTasks().size() < minTasks) {
 				futureSolution = Solution.extendSolution(futureSolution, this.distribution.createTask());
 			}
@@ -210,14 +213,12 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 			// ********
 			
 			worsePredictionCost = Math.max(0, worsePredictionCost - predictionCost);
-			bestPredictionCost = Math.max(0, bestPredictionCost - predictionCost);
-			
-			sum += predictionCost;
 		}
 		
 		double bid = Math.min(worsePredictionCost, solutionCost.getMarginalCost());
 		bid = solutionCost.getMarginalCost() - (solutionCost.getMarginalCost() - bid) * riskEpsilon;
 
+		// we don't store the solution since it was based on the prediction
 		return new SolutionCost(bid, null);
 	}
 
@@ -246,13 +247,16 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 	}
 	
 	public long bid(double marginalCost) {
-
+		// make a bid for this cycle
 		double bid = marginalCost;
 
+		// if we already did at least 1 cycle of bidding
 		if (winners.size() > 0) {
 			int idx = bestAgent();
+			// get best agent's min bid from bid history until some depth
 			Long minBid = getMinBid(bidHistory.get(idx));
 
+			// if his min bid is higher than our marginal cost, we want to make a profit so we do this
 			if (minBid > marginalCost) {
 				bid += (minBid - marginalCost) * marginEpsilon;
 			}
@@ -264,6 +268,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 	}
 	
 	public int bestAgent() {
+		// best agent does not represent our agent, even if we are the best
 		int best = 0;
 		int numWinsBest = Integer.MIN_VALUE;
 
@@ -272,6 +277,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 				continue;
 			}
 			
+			// how many times this agent won
 			int numWins = 0;
 			for (int wId : winners) {
 				if (id == wId) {
@@ -279,9 +285,11 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 				}
 			}
 
+			// we store it as a best win
 			if (numWins > numWinsBest) {
 				best = id;
 				numWinsBest = numWins;
+			// in case it happens it has same number of wins, we will check his profit (i.e. min bid is lower)
 			} else if ((numWins == numWinsBest) && (getMinBid(bidHistory.get(best)) > getMinBid(bidHistory.get(id)))) {
 				best = id;
 			}
@@ -291,6 +299,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 	}
 	
 	public Long getMinBid(List<Long> agentBidHistory) {
+		// find a min bid in this agent history
 		Long minBid = Long.MAX_VALUE;
 		
 		for (int i = agentBidHistory.size() - 1; i >= (agentBidHistory.size() - 1 - Math.min(depth, agentBidHistory.size() - 1)); i--) {
