@@ -53,13 +53,13 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
     /** Lower bound on the number of auctioned tasks **/
 	private int minTasks = 5;
 	/** How many simulated solutions to calculate for each simulated future task **/
-	private int numPredictions = 20;
+	private int numPredictions = 15;
 	/** How much to risk in giving the final bid **/
 	private double riskEpsilon = 0.9;
 	/**  How much of difference between bid and marginal cost to take **/
-	private double marginEpsilon = 0.8;
+	private double marginEpsilon = 0.7;
 	/** Depth for getting a minimal bid from others **/
-	private int depth = 10;
+	private int depth = 20;
     
     private Task currentTask;
 	public HashMap<Integer, List<Long>> bidHistory = new HashMap<>();
@@ -106,6 +106,12 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		boolean won = winner == agent.id();
 		
 		if (won) {
+//			if (newSolution != null) {
+//				solution = newSolution;
+//			} else {
+//				solution = Solution.extendSolution(solution, currentTask);
+//				
+//			}
 			solution = newSolution != null ? newSolution : Solution.extendSolution(solution, currentTask);
 			//TODO: recompute the solution
 			
@@ -187,11 +193,11 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 		long time_share = (long) ((timeout * 0.95)/numPredictions);
 		
 		// compute estimations
-		double worsePredictionCost = Double.NEGATIVE_INFINITY;
+		double worsePredictionCost = Double.POSITIVE_INFINITY;
 		
 		for (int i = 0; i < numPredictions; i++) {
 			start_time = System.currentTimeMillis();
-			Solution futureSolution = new Solution(extendedSolution);
+			Solution futureSolution = new Solution(solution);
 
 			// extend plan with random tasks
 			// if there is already 5 tasks in the solution, we skip this
@@ -209,18 +215,98 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 			// recompute the plan on the extended solution as well
 			extendedFutureSolution = new Solution(getSolution(extendedFutureSolution.getVehicles(), extendedFutureSolution.getTasks(), future_timeout/2));
 			
-			double predictionCost = Math.max(0, cost(extendedFutureSolution) - cost(futureSolution));
+			double predictionCost = cost(extendedFutureSolution) - cost(futureSolution);
 			// ********
+			if ( predictionCost > 0) {
+				worsePredictionCost = Math.min(worsePredictionCost, predictionCost);
+				System.out.println("worst" + worsePredictionCost);
+				System.out.println("prediction" + predictionCost);
+			}
 			
-			worsePredictionCost = Math.max(0, worsePredictionCost - predictionCost);
+			
 		}
 		
 		double bid = Math.min(worsePredictionCost, solutionCost.getMarginalCost());
+		System.out.println("bid" + bid);
 		bid = solutionCost.getMarginalCost() - (solutionCost.getMarginalCost() - bid) * riskEpsilon;
 
 		// we don't store the solution since it was based on the prediction
 		return new SolutionCost(bid, null);
 	}
+	
+//public SolutionCost computeMarginalCost_advanced() {
+//		long start_time = System.currentTimeMillis();
+//	
+//		// ********
+//		solution = new Solution(getSolution(solution.getVehicles(), solution.getTasks(), timeout_bid/2));
+//		double currentCost = cost(solution);
+//		// estimate without future
+//		Solution extendedSolution = Solution.extendSolution(solution, currentTask);
+//		// recompute the plan on the extended solution as well
+//		extendedSolution = new Solution(getSolution(extendedSolution.getVehicles(), extendedSolution.getTasks(), timeout_bid/2));
+//		double extendedCost = cost(extendedSolution);
+//		
+//		double marginalCost = Math.max(0, extendedCost - currentCost);		
+//		// *********
+//		
+//		
+//		SolutionCost solutionCost = new SolutionCost(marginalCost, extendedSolution);
+//		
+//		if (solution.getTasks().size() >= minTasks || solutionCost.getMarginalCost() == 0) {
+//			return solutionCost;
+//		}
+//		
+//		long middle_time = System.currentTimeMillis();
+//		long timeout = timeout_bid;
+//		timeout -= (middle_time - start_time);
+//		long time_share = (long) ((timeout * 0.95)/numPredictions);
+//		
+//		// compute estimations
+//		double worsePredictionCost = Double.NEGATIVE_INFINITY;
+//		
+//		for (int i = 0; i < numPredictions; i++) {
+//			start_time = System.currentTimeMillis();
+//			
+//			Solution futureSolution = new Solution(solution);
+//
+//			// extend plan with random tasks
+//			// if there is already 5 tasks in the solution, we skip this
+//			while (futureSolution.getTasks().size() < minTasks) {
+//				futureSolution = Solution.extendSolution(futureSolution, this.distribution.createTask());
+//			}
+//			
+//			middle_time = System.currentTimeMillis();
+//			
+//			// ******** 
+//			long future_timeout = time_share - (middle_time - start_time);
+//			futureSolution = new Solution(getSolution(futureSolution.getVehicles(), futureSolution.getTasks(), future_timeout/2));
+//			double futureCost = cost(futureSolution);
+//			
+//			Solution extendedFutureSolution = Solution.extendSolution(futureSolution, currentTask);
+//			// recompute the plan on the extended solution as well
+//			extendedFutureSolution = new Solution(getSolution(extendedFutureSolution.getVehicles(), extendedFutureSolution.getTasks(), future_timeout/2));
+//			double extendedFutureCost = cost(extendedFutureSolution);
+//			
+//			double predictionCost = Math.max(0, cost(extendedFutureSolution) - cost(futureSolution));
+//			// ********
+////			if ( predictionCost > 0) {
+////				worsePredictionCost = Math.min(worsePredictionCost, predictionCost);
+////				System.out.println("worst" + worsePredictionCost);
+////				System.out.println("prediction" + predictionCost);
+////			}
+//			System.out.println("worst" + worsePredictionCost);
+//			System.out.println("prediction" + predictionCost);
+//			worsePredictionCost = Math.max(worsePredictionCost, predictionCost);
+//			
+//		}
+//		
+//		double bid = Math.min(worsePredictionCost, solutionCost.getMarginalCost());
+//		System.out.println("bid" + bid);
+//		bid = solutionCost.getMarginalCost() - (solutionCost.getMarginalCost() - bid) * riskEpsilon;
+//
+//		// we don't store the solution since it was based on the prediction
+//		return new SolutionCost(bid, null);
+//	}
 
 	
     public double cost(Solution s) {
@@ -260,6 +346,7 @@ public class CentralizedAuctionAgent implements AuctionBehavior {
 			if (minBid > marginalCost) {
 				bid += (minBid - marginalCost) * marginEpsilon;
 			}
+			//bid = 0.8*marginalCost + 0.2*minBid;
 
 			System.out.println("[BID] Marginal Cost = " + marginalCost + ", minimal = "+ minBid + ", final = " + bid);
 		}
